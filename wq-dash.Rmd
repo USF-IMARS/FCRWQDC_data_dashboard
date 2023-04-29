@@ -42,8 +42,53 @@ if(Sys.info()[1] == 'Windows')
 
 source('R/funcs.R')
 
-load('data/epcdata.RData')
-load('data/algdat.RData')
+#load('data/epcdata.RData')
+station_data <- readr::read_csv(
+  'data/station_sampling_periods_for_all_programs.csv'
+) |>
+  dplyr::mutate(
+    .keep = "none",
+    Site = Site,
+    bay_segment = Source,
+    epchc_station = dplyr::row_number(), # Site,
+    Latitude = Lat,
+    Longitude = Long,
+    # = 'Sample Start Year',
+    # = 'Sample End Year',
+    # = 'Currently Sampling?',
+    # = 'Notes',
+  ) 
+  
+# samples are monthly but must be given a day, 
+# so we add the ASSUMED_DAY_OF_MONTH.
+ASSUMED_DAY_OF_MONTH <- 15
+epcdata <- readr::read_csv(
+  'data/Merged_chla.csv'
+) |>
+  dplyr::mutate(
+    .keep = "none",
+    Site = Site,
+    # bay_segment = Source,
+    yr = Year,
+    mo = Month,
+    chla = Value,
+    
+    # = Parameter
+    # = Units
+    SampleTimeString = paste(yr, mo, ASSUMED_DAY_OF_MONTH, sep="-"),
+    SampleTime = as.POSIXct(SampleTimeString, format="%Y-%m-%d")
+
+    ,
+  ) |>
+  dplyr::left_join(
+    # x = .,
+    y = station_data,
+  ) |>
+  tidyr::drop_na(
+    Latitude, Longitude,
+    chla,
+  )
+# load('data/epcdata.RData')
 
 prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
 maxyr <- 2022
@@ -281,19 +326,10 @@ selplo <- reactive({
   # data to plot
   toplo <- epcdata %>% 
     filter(epchc_station %in% selsit) %>% 
-    filter(yr >= 1975) %>% 
-    select(Date = SampleTime, sd_raw_m, sd_q, chla) %>% 
+    # filter(yr >= 1975) %>% 
+    select(Date = SampleTime, chla) %>% 
     mutate(Date = as.Date(Date))
   
-  algplo <- algdat %>% 
-    filter(epchc_station %in% selsit) %>% 
-    group_by(yrqrt, name) %>%
-    summarise(count = sum(count, na.rm = T)) %>% 
-    ungroup %>% 
-    mutate(
-      name = factor(name, levels = algnms, labels = algnms)
-      )
-
   # chl plot
   p1 <- ggplot(toplo, aes(x = Date, y = chla)) + 
     geom_line(aes(colour = 'Chlorophyll-a')) + 
@@ -309,38 +345,9 @@ selplo <- reactive({
       legend.title = element_blank()
     )
   
-  # secchi plot
-  p2 <- ggplot() + 
-    geom_line(data = toplo, aes(x = Date, y = sd_raw_m, colour = 'Secchi depth')) + 
-    labs(
-      y = 'Depth (m)', 
-      x = NULL, 
-      title = paste0('Station ', selsit)
-      ) + 
-    scale_colour_manual(values = "#0047FE") +
-    pthm +
-    theme(
-      legend.title = element_blank()
-    )
-
-  if(any(!toplo$sd_q))
-    p2 <- p2 +
-      geom_point(data = toplo[!toplo$sd_q, ], aes(x = Date, y = sd_raw_m, colour = 'Secchi on bottom'), size = 1.5) +
-      scale_colour_manual(values = c('#0047FE', 'tomato1'))
-
   p1 <- ggplotly(p1, dynamicTicks = T)
-  p2 <- ggplotly(p2, dynamicTicks = T)
-  p3 <-  plot_ly(algplo, x = ~ yrqrt, y= ~count, color = ~name, text = ~paste0(name, ', ', yrqrt), hoverinfo = 'text') %>% 
-    add_bars() %>% 
-    layout(
-      yaxis = list(title = 'Phytoplankton cell count (0.1/ml)', gridcolor = '#FFFFFF'),
-      barmode = 'stack',
-      showlegend = T, 
-      font = list(family = fml), 
-      plot_bgcolor = '#ECECEC'
-    )
-  
-  out <- subplot(p3, p1, p2, nrows = 3, shareX = T, titleY = T, which_layout = 1) %>% 
+
+  out <- subplot( p1, nrows = 1, shareX = T, titleY = T, which_layout = 1) %>% 
     rangeslider(thickness = 0.02) %>%
     layout(
       title = paste('Station', selsit),
@@ -458,23 +465,7 @@ output$wqdwntab <- downloadHandler(
     
     todl <- epcdata %>% 
       filter(epchc_station %in% as.numeric(seldl)) %>% 
-      select(bay_segment, epchc_station, SampleTime, yr, mo, Latitude, Longitude, secchi_m = sd_raw_m, secchi_q = sd_q, chla, chla_q)
-    
-    write.csv(todl, file, quote = T, row.names = F)
-    
-  }
-)
-
-# algae data
-output$algdwntab <- downloadHandler(
-  filename = function(){'algdat.csv'},
-  content = function(file){
-    
-    # inputs
-    seldl <- input$seldl
-    
-    todl <- algdat %>%
-      filter(epchc_station %in% as.numeric(seldl))
+      select(bay_segment, epchc_station, SampleTime, yr, mo, Latitude, Longitude, chla)
     
     write.csv(todl, file, quote = T, row.names = F)
     
