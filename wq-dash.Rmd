@@ -14,9 +14,11 @@ css: styles.css
 ```{r setup, include=F}
 knitr::opts_chunk$set(echo = F, message = F, warning = F)
 
-options(repos = c(
-    tbeptech = 'https://tbep-tech.r-universe.dev',
-    CRAN = 'https://cloud.r-project.org'))
+# options(repos = c(
+#     tbeptech = 'https://tbep-tech.r-universe.dev',
+#     CRAN = 'https://cloud.r-project.org'))
+
+devtools::install_github("tbep-tech/tbeptools")
 
 # libraries
 library(flexdashboard)
@@ -91,7 +93,7 @@ epcdata <- readr::read_csv(
 # load('data/epcdata.RData')
 
 prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
-maxyr <- 2022
+maxyr <- 2025
 fml <- "Lato Light"
 
 # minor theme tweaks
