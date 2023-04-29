@@ -18,13 +18,15 @@ knitr::opts_chunk$set(echo = F, message = F, warning = F)
 #     tbeptech = 'https://tbep-tech.r-universe.dev',
 #     CRAN = 'https://cloud.r-project.org'))
 
-devtools::install_github("tbep-tech/tbeptools")
+# devtools::install_github("tbep-tech/tbeptools")
+librarian::shelf(
+  "tbep-tech/tbeptools"
+)
 
 # libraries
 library(flexdashboard)
 library(mapview)
 library(leaflet)
-library(tbeptools)
 library(tidyverse)
 library(shiny)
 library(sf)
@@ -285,7 +287,7 @@ attmap <- reactive({
       weight = 1,
       fillOpacity = 1,
       radius=~scales::rescale(val, from = scls, to = c(5, 20)),
-      label = ~paste0('Station ', epchc_station, ' (', mapref, ' met: ', met, ', value ', round(val, 2), ', ', mapref, ' ', ptlab, ')')
+      label = ~paste0('Station ', Site, ' (', mapref, ' met: ', met, ', value ', round(val, 2), ', ', mapref, ' ', ptlab, ')')
     ) %>% 
     addLegend("topright", labels = c("Stay the Course", "Caution", "On Alert"), colors = c("#2DC938", "#E9C318", "#CC3231"), title = "Bay segment decision<br>matrix outcomes", opacity = 1) %>% 
     addLegend("bottomright", pal = palno, title = paste0("Station ", mapref, "<br>not met"), labels = thrsel, opacity = 1, values = noval) %>% 
@@ -352,7 +354,7 @@ selplo <- reactive({
   out <- subplot( p1, nrows = 1, shareX = T, titleY = T, which_layout = 1) %>% 
     rangeslider(thickness = 0.02) %>%
     layout(
-      title = paste('Station', selsit),
+      title = paste('Station', epcdata$Site[selsit], 'n(', selsit, ')'),
       legend = list(font = list(size = 16)), 
       font = list(family = fml),
       xaxis = list(
@@ -406,9 +408,9 @@ bsmap <- mapview(locs, homebutton = F, legend = F) %>%
     layerId = ~epchc_station,
     color = '#00806E',
     stroke = F,
-    fillOpacity = 0.9,
-    radius = 15,
-    label = ~epchc_station,
+    fillOpacity = 0.3,
+    radius = 10,
+    # label = ~epchc_station,
     labelOptions = labelOptions(
       textOnly = T,
       noHide = T,
