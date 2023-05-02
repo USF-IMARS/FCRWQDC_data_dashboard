@@ -14,15 +14,6 @@ css: styles.css
 ```{r setup, include=F}
 knitr::opts_chunk$set(echo = F, message = F, warning = F)
 
-# options(repos = c(
-#     tbeptech = 'https://tbep-tech.r-universe.dev',
-#     CRAN = 'https://cloud.r-project.org'))
-
-# devtools::install_github("tbep-tech/tbeptools")
-# librarian::shelf(
-#   "tbep-tech/tbeptools"
-# )
-
 # libraries
 library(flexdashboard)
 library(mapview)
@@ -116,11 +107,6 @@ locs <- epcdata %>%
   unique %>% 
   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
 
-# algae names and colors
-algnms <- c('Bacillariophyta', 'Cyanobacteria', 'Karenia brevis', 'Pseudo-nitzschia pungens', 'Pseudo-nitzschia sp.', 'Pyrodinium bahamense', 'Tripos hircus', 'other')
-cols <- pal_alg(algnms)
-names(cols) <- algnms
-
 downloadButtonRmd <- function (outputId, label = "Download", class = NULL, ...)  {
   tags$a(id = outputId, class = paste("btn btn-default shiny-download-link", 
                                       class), href = "", target = "_blank", download = NA, 
@@ -148,7 +134,6 @@ maprct <- reactive({
       )
   
   return(out)
-  
 })
 
 # domain for map color points
@@ -320,11 +305,8 @@ selplo <- reactive({
   
   selsit <- input$map_marker_click$id
   
-  # validate(
-  #   need(!is.null(selsit), "Select station on map")
-  # )
-  
-  if(is.null(selsit))
+  # select 1st station if station not selected
+  if(is.null(selsit))  
     selsit <- locs[1, ]$epchc_station 
 
   # data to plot
@@ -399,14 +381,8 @@ selplo <- reactive({
 ```
 
 ```{r map}
-bsmap <- mapview(locs, homebutton = F, legend = F) %>% 
-  .@map %>% 
-  leafem::removeMouseCoordinates() %>% 
-  clearMarkers() %>%
-  addCircleMarkers(
-    data = locs,
-    layerId = ~epchc_station,
-    color = '#00806E',
+addCircleMarkersForStations <- purrr::partial(
+  leaflet::addCircleMarkers,
     stroke = F,
     fillOpacity = 0.3,
     radius = 10,
@@ -420,8 +396,19 @@ bsmap <- mapview(locs, homebutton = F, legend = F) %>%
         ),
       direction = 'center'
     )
+)
+
+
+bsmap <- mapview(locs, homebutton = F, legend = F) %>% 
+  .@map %>% 
+  leafem::removeMouseCoordinates() %>% 
+  clearMarkers() %>%
+  addCircleMarkersForStations(
+        data = locs,
+        layerId = ~epchc_station,
+        color = '#00806E',
   ) %>% 
-  addCircleMarkers(
+  addCircleMarkers(  # highlight the selected marker
       data = locs[1, ],
       layerId = 'selsit',
       stroke = T,
