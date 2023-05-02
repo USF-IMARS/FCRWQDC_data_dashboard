@@ -281,9 +281,10 @@ selplo <- reactive({
 
 ```{r map}
 # create colormap
+locs$bay_segment <- factor(locs$bay_segment)
 num_colors <- length(unique(locs$bay_segment))
-colors <- brewer.pal(n = num_colors, name = "Set3")
-names(colors) <- unique(locs$bay_segment)
+colors <- brewer.pal(n = num_colors, name = "Set1")
+color_factor <- colorFactor(palette = colors, levels = unique(locs$bay_segment))
 
 bsmap <- mapview(locs, homebutton = F, legend = F) %>% 
   .@map %>% 
@@ -295,7 +296,7 @@ bsmap <- mapview(locs, homebutton = F, legend = F) %>%
     radius = ~scale(years_of_sampling, center = min(years_of_sampling), scale = max(years_of_sampling) - min(years_of_sampling)) * 10 + 4,
     data = locs, #filter(locs, bay_segment %in% c("DERM", "AOML")),
     layerId = ~epchc_station,
-    color = ~colors[bay_segment],  # TODO: this is not working
+    color = ~color_factor(bay_segment),  # TODO: this is not working
   ) %>% 
   addCircleMarkers(  # highlight the selected marker
       data = locs[1, ],
