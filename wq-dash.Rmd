@@ -103,7 +103,7 @@ pthm <- theme(
 
 # locations
 locs <- epcdata %>% 
-  select(epchc_station, Longitude, Latitude) %>% 
+  select(epchc_station, Longitude, Latitude, Site, bay_segment) %>% 
   unique %>% 
   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
 
@@ -303,6 +303,7 @@ attmaploc <- reactive({
 # selected site plots
 selplo <- reactive({
   
+  # selected_site
   selsit <- input$map_marker_click$id
   
   # select 1st station if station not selected
@@ -333,10 +334,13 @@ selplo <- reactive({
   
   p1 <- ggplotly(p1, dynamicTicks = T)
 
+  selected_site <- filter(locs, epchc_station == selsit)
+  # TODO ensure selected site len == 1
+  
   out <- subplot( p1, nrows = 1, shareX = T, titleY = T, which_layout = 1) %>% 
     rangeslider(thickness = 0.02) %>%
     layout(
-      title = paste('Station', epcdata$Site[selsit], 'n(', selsit, ')'),
+      title = paste(selected_site$bay_segment, selected_site$Site, 'n(', selsit, ')'),
       legend = list(font = list(size = 16)), 
       font = list(family = fml),
       xaxis = list(
@@ -381,32 +385,22 @@ selplo <- reactive({
 ```
 
 ```{r map}
-addCircleMarkersForStations <- purrr::partial(
-  leaflet::addCircleMarkers,
-    stroke = F,
-    fillOpacity = 0.3,
-    radius = 10,
-    # label = ~epchc_station,
-    labelOptions = labelOptions(
-      textOnly = T,
-      noHide = T,
-      style = list(
-        "color" = "#FFFFFF",
-        "font-family" = fml
-        ),
-      direction = 'center'
-    )
-)
-
+# create colormap
+num_colors <- length(unique(locs$bay_segment))
+colors <- brewer.pal(n = num_colors, name = "Set3")
+names(colors) <- unique(locs$bay_segment)
 
 bsmap <- mapview(locs, homebutton = F, legend = F) %>% 
   .@map %>% 
   leafem::removeMouseCoordinates() %>% 
   clearMarkers() %>%
-  addCircleMarkersForStations(
-        data = locs,
-        layerId = ~epchc_station,
-        color = '#00806E',
+  leaflet::addCircleMarkers(
+    stroke = F,
+    fillOpacity = 0.3,
+    radius = 10,
+    data = locs, #filter(locs, bay_segment %in% c("DERM", "AOML")),
+    layerId = ~epchc_station,
+    color = ~colors[bay_segment],  # TODO: this is not working
   ) %>% 
   addCircleMarkers(  # highlight the selected marker
       data = locs[1, ],
