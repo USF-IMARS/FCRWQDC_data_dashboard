@@ -48,9 +48,10 @@ station_data <- readr::read_csv(
     epchc_station = dplyr::row_number(), # Site,
     Latitude = Lat,
     Longitude = Long,
-    # = 'Sample Start Year',
-    # = 'Sample End Year',
-    # = 'Currently Sampling?',
+    start_year = `Sample Start Year`,
+    end_year = `Sample End Year`,
+    years_of_sampling = as.integer(end_year) - as.integer(start_year),
+    current_sampling_status = `Currently Sampling?`,
     # = 'Notes',
   ) 
   
@@ -103,7 +104,7 @@ pthm <- theme(
 
 # locations
 locs <- epcdata %>% 
-  select(epchc_station, Longitude, Latitude, Site, bay_segment) %>% 
+  select(epchc_station, Longitude, Latitude, Site, bay_segment, years_of_sampling) %>% 
   unique %>% 
   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
 
@@ -192,112 +193,6 @@ palno <- reactive({
     na.color = 'yellow',
     domain = dmn
     )
-  
-})
-  
-# site attainment map
-attmap <- reactive({
-  
-  # inputs
-  thrsel <- input$thrsel
-  yrsel <- input$yrsel
-  mapref <- input$mapref
-  palyes <- palyes()
-  palno <- palno()
-  maprct <- maprct()
-  mapdmn <- mapdmn()
-  attmaploc <- isolate(attmaploc())
-
-  # filter by year to map
-  toplo <- maprct %>% 
-    filter(thr %in% thrsel) %>% 
-    select(-thr) %>% 
-    filter(yr %in% yrsel) %>% 
-    mutate(
-      cols = case_when(
-        met == 'yes' ~ palyes(val),
-        met == 'no' ~ palno(val)
-      ), 
-      ptlab = case_when(
-        mapref == 'threshold' ~ thresh, 
-        mapref == 'target' ~ target
-      )
-    ) %>% 
-    left_join(locs, ., by = 'epchc_station') 
-
-  # polygon attainment data for selected year
-  attyr <- avedat %>% 
-    filter(yr %in% yrsel) %>% 
-    left_join(tbseg, ., by = 'bay_segment') %>% 
-    mutate(
-      outcome = case_when(
-        outcome == 'lightgreen' ~ '#2DC938', 
-        outcome == 'yellow' ~ '#E9C318', 
-        outcome == 'red' ~ '#CC3231'
-      )
-    )
-
-  # values to feed to legend  
-  yesval <- mapdmn %>% filter(thr == thrsel) %>% filter(met == 'yes') %>% pull(rng)
-  noval <- mapdmn %>% filter(thr == thrsel) %>% filter(met == 'no') %>% pull(rng)
-  
-  # for point scaling, original range
-  scls <- dplyr::case_when(
-    thrsel == 'chla' ~ c(0.59, 58), 
-    thrsel == 'la' ~ c(0.38, 5.92)
-  )
-  
-  # map with custom legends
-  out <- mapview(toplo, fill = F, homebutton = F, popup = NULL, legend = F) %>% 
-    .@map %>% 
-    leafem::removeMouseCoordinates() %>% 
-    clearMarkers() %>% 
-    addPolygons(
-      data = attyr, 
-      stroke = T, 
-      color = 'grey', 
-      weight = 1, 
-      layerId = ~long_name, 
-      fillColor = ~outcome, 
-      fillOpacit = 0.5,
-      label = ~paste0(bay_segment, ': ', long_name, ', Action: ', action, ' (', outcome, ')')
-    ) %>% 
-    addCircleMarkers(
-      data = toplo, 
-      layerId = ~epchc_station,
-      stroke = TRUE,
-      color = 'black',
-      fill = TRUE,
-      fillColor = ~cols,
-      weight = 1,
-      fillOpacity = 1,
-      radius=~scales::rescale(val, from = scls, to = c(5, 20)),
-      label = ~paste0('Station ', Site, ' (', mapref, ' met: ', met, ', value ', round(val, 2), ', ', mapref, ' ', ptlab, ')')
-    ) %>% 
-    addLegend("topright", labels = c("Stay the Course", "Caution", "On Alert"), colors = c("#2DC938", "#E9C318", "#CC3231"), title = "Bay segment decision<br>matrix outcomes", opacity = 1) %>% 
-    addLegend("bottomright", pal = palno, title = paste0("Station ", mapref, "<br>not met"), labels = thrsel, opacity = 1, values = noval) %>% 
-    addLegend("bottomright", pal = palyes, title = paste0("Station ", mapref, "<br>met"), labels = thrsel, opacity = 1, values = yesval)
-  
-  if(length(attmaploc) != 0)
-    out <- out %>% 
-      leaflet::setView(lng = attmaploc$lng, lat = attmaploc$lat, zoom = attmaploc$zoom)
-  
-  return(out)
-  
-})
-
-# attmap locations
-attmaploc <- reactive({
-  
-  if(is.null(input$attmap_center))
-    return(list())
-  
-  list(
-    zoom = input$attmap_zoom,
-    lat = input$attmap_center$lat,
-    lng = input$attmap_center$lng
-  )
-  
 })
 
 # selected site plots
@@ -397,7 +292,7 @@ bsmap <- mapview(locs, homebutton = F, legend = F) %>%
   leaflet::addCircleMarkers(
     stroke = F,
     fillOpacity = 0.3,
-    radius = 10,
+    radius = ~scale(years_of_sampling, center = min(years_of_sampling), scale = max(years_of_sampling) - min(years_of_sampling)) * 10 + 4,
     data = locs, #filter(locs, bay_segment %in% c("DERM", "AOML")),
     layerId = ~epchc_station,
     color = ~colors[bay_segment],  # TODO: this is not working
