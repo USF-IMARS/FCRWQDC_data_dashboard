@@ -118,11 +118,12 @@ selplo <- reactive({
     make_plot(epcdata, 'Chlorophyll-a', 'Concentration (ug/L)'),
     # TODO: these are causing errors b/c of stations not existing 
     #        in all datasets.
-    make_plot(turbid_data, 'Turbidity', 'NTU'),
-    make_plot(nitrogen_data, 'Nitrate-Nitrite (N)', 'Concentration mg/L'),
-    make_plot(phosphate_data, 'Phosphate (PO4)', 'Concentration (mg/L)'),
-    nrows = 4, shareX = T, titleY = T, which_layout = 1
-  ) %>% 
+    # make_plot(turbid_data, 'Turbidity', 'NTU'),
+    # make_plot(nitrogen_data, 'Nitrate-Nitrite (N)', 'Concentration mg/L'),
+    # make_plot(phosphate_data, 'Phosphate (PO4)', 'Concentration (mg/L)'),
+    # nrows = 4, shareX = T, titleY = T, which_layout = 1
+    nrows = 1, shareX = T, titleY = T, which_layout = 1
+    ) %>% 
     rangeslider(thickness = 0.02) %>%
     layout(
       title = paste(
