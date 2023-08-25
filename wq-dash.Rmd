@@ -41,25 +41,12 @@ source('R/funcs.R')
 source('R/data_loader.R')
 # epcdata <- load_wq_data('data/Unified_WQ_Database_1995-2022.csv')
 epcdata <- load_wq_data('data/Merged_chla.csv')
-# turbid_data <- load_wq_data('data/Merged_turb.csv')
-# nitrogen_data <- load_wq_data('data/Merged_NOX.csv')
-# phosphate_data <- load_wq_data('data/Merged_PO4.csv')
+turbid_data <- load_wq_data('data/Merged_turb.csv')
+nitrogen_data <- load_wq_data('data/Merged_NOX.csv')
+phosphate_data <- load_wq_data('data/Merged_PO4.csv')
 
 prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
 maxyr <- 2025
-fml <- "Lato Light"
-
-# minor theme tweaks
-pthm <- theme(
-    axis.text.x = element_text(size = 11, angle = 45, hjust = 1),
-    legend.text = element_text(size = 12), 
-    axis.title.y = element_text(size = 12),
-    text = element_text(fml), 
-    legend.position = 'top',
-    # panel.grid.minor=element_blank(),
-    # panel.grid.major=element_blank(),
-    panel.background = element_rect(fill = '#ECECEC')
-    ) 
 
 # locations
 locs <- epcdata %>% 
@@ -85,48 +72,18 @@ selplo <- reactive({
   if(is.null(selsit))  
     selsit <- locs[1, ]$epchc_station 
   
-  make_plot <- function(dataframe, varname, ylabel, station_colname){
-    # dataframe <- epcdata  # dataframe: df to plot
-    # varname <- 'chla'  # str: column name of variable to plot
-    # ylabel <- 'Concentration (ug/L)'  # str: label for y axis
-    # station_colname <- 'epchc_station'  # str: name of column with station ids
-    # chl plot
-      # data to plot
-    toplo <- dataframe %>%
-      filter(epchc_station %in% selsit) %>% 
-      # filter(yr >= 1975) %>% 
-      select(Date = SampleTime, chla) %>% 
-      mutate(Date = as.Date(Date))
-
-    p1 <- ggplot(toplo, aes(x = Date, y = chla)) + 
-      geom_line(aes(colour = varname)) + 
-      scale_colour_manual(values = "#427355") + 
-      # geom_point(colour = "#427355", size = 0.5) +
-      # scale_y_log10() + 
-      labs(
-        y = ylabel, 
-        x = NULL
-        ) +
-      pthm + 
-      theme(
-        legend.title = element_blank()
-      )
-    p1 <- ggplotly(p1, dynamicTicks = T)
-    return(p1)
-  }
+  source('R/make_plot.R')
 
   selected_site <- filter(locs, epchc_station == selsit)
   # TODO ensure selected site len == 1
-  
+  station_colname <- 'epchc_station'
   out <- subplot(
-    make_plot(epcdata, 'Chlorophyll-a', 'Concentration (ug/L)', 'epchc_station'),
-    # TODO: these are causing errors b/c of stations not existing 
-    #        in all datasets.
-    # make_plot(turbid_data, 'Turbidity', 'NTU'),
-    # make_plot(nitrogen_data, 'Nitrate-Nitrite (N)', 'Concentration mg/L'),
-    # make_plot(phosphate_data, 'Phosphate (PO4)', 'Concentration (mg/L)'),
-    # nrows = 4, shareX = T, titleY = T, which_layout = 1
-    nrows = 1, shareX = T, titleY = T, which_layout = 1
+    make_plot(epcdata, 'Chlorophyll-a', 'Concentration (ug/L)', station_colname, selsit),
+    make_plot(turbid_data, 'Turbidity', 'NTU', station_colname, selsit),
+    make_plot(nitrogen_data, 'Nitrate-Nitrite (N)', 'Concentration mg/L', station_colname, selsit),
+    make_plot(phosphate_data, 'Phosphate (PO4)', 'Concentration (mg/L)', station_colname, selsit),
+    nrows = 4,  # must equal the number of make_plot() above
+    shareX = T, titleY = T, which_layout = 1
     ) %>% 
     rangeslider(thickness = 0.02) %>%
     layout(
