@@ -14,18 +14,24 @@ css: styles.css
 ```{r setup, include=F}
 knitr::opts_chunk$set(echo = F, message = F, warning = F)
 
-# libraries
-library(flexdashboard)
-library(mapview)
-library(leaflet)
-library(tidyverse)
-library(shiny)
-library(sf)
-library(RColorBrewer)
-library(extrafont)
-library(plotly)
-library(lubridate)
-library(shinyWidgets)
+if (!requireNamespace("librarian", quietly = TRUE)) {
+  # If not installed, install the package
+  install.packages("librarian")
+}
+
+librarian::shelf(
+  flexdashboard,
+  mapview,
+  leaflet,
+  tidyverse,
+  shiny,
+  sf,
+  RColorBrewer,
+  extrafont,
+  plotly,
+  lubridate,
+  shinyWidgets
+)
 
 # # style file
 # styles <- readLines('https://raw.githubusercontent.com/tbep-tech/css-styling/master/styles.css')
