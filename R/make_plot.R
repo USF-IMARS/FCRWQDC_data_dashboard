@@ -22,26 +22,26 @@ make_plot <- function(dataframe, varname, ylabel, station_colname, selsit){
   toplo <- dataframe %>%
     filter(epchc_station %in% selsit) %>% 
     # filter(yr >= 1975) %>% 
-    transmute(
+    mutate(
       Date = as.Date(SampleTime),
       ydata = as.numeric(chla)  #.data[[varname]])
     ) 
 
   p1 <- ggplot(toplo, aes(x = Date, y = ydata)) + 
-    geom_line(aes(colour = !!varname)) + 
-    scale_colour_manual(values = "#427355") + 
-    # geom_point(colour = "#427355", size = 0.5) +
+    # geom_line(aes(colour = !!sym(varname))) +
+    geom_line(colour = "#427355") +
+    # scale_colour_manual(values = "#427355") + 
+    geom_point(colour = "#427355", size = 0.5) +
     # scale_y_log10() + 
     labs(
       y = ylabel, 
       x = NULL
     ) +
-    pthm + 
+    pthm +
     theme(
       legend.title = element_blank()
     )
   p1 <- ggplotly(p1, dynamicTicks = T)
-  # print(p1)
+  print(p1)
   return(p1)
 }
-        

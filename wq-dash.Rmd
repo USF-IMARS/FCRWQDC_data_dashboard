@@ -45,18 +45,29 @@ source('R/funcs.R')
 
 # === load data
 source('R/data_loader.R')
-# epcdata <- load_wq_data('data/Unified_WQ_Database_1995-2022.csv')
-epcdata <- load_wq_data('data/Merged_chla.csv')
-turbid_data <- load_wq_data('data/Merged_turb.csv')
-nitrogen_data <- load_wq_data('data/Merged_NOX.csv')
-phosphate_data <- load_wq_data('data/Merged_PO4.csv')
+epcdata <- load_wq_cleaned_df("data/df_cleaned.csv")
+
+# epcdata <- load_wq_data('data/Merged_chla.csv')
+# turbid_data <- load_wq_data('data/Merged_turb.csv')
+# nitrogen_data <- load_wq_data('data/Merged_NOX.csv')
+# phosphate_data <- load_wq_data('data/Merged_PO4.csv')
 
 prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
 maxyr <- 2025
 
+# TODO: transform data from Unified_WQ_Database into shape that works
+#       this was previously working with `epcdata` set from the Merged_*.csv files
+
+# TODO: data filters before showing on display
+#       Dropdowns with 
+#         * start & end date
+#         * program
+#         * current vs historical
+#         * region (eg: fk reef traact)
+
 # locations
 locs <- epcdata %>% 
-  select(epchc_station, Longitude, Latitude, Site, bay_segment, years_of_sampling) %>% 
+  select(epchc_station, Longitude, Latitude) %>% 
   unique %>% 
   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
 
@@ -85,12 +96,12 @@ selplo <- reactive({
   station_colname <- 'epchc_station'
   out <- subplot(
     make_plot(epcdata, 'Chlorophyll-a', 'Concentration (ug/L)', station_colname, selsit),
-    make_plot(turbid_data, 'Turbidity', 'NTU', station_colname, selsit),
-    make_plot(nitrogen_data, 'Nitrate-Nitrite (N)', 'Concentration mg/L', station_colname, selsit),
-    make_plot(phosphate_data, 'Phosphate (PO4)', 'Concentration (mg/L)', station_colname, selsit),
-    nrows = 4,  # must equal the number of make_plot() above
+    # make_plot(turbid_data, 'Turbidity', 'NTU', station_colname, selsit),
+    # make_plot(nitrogen_data, 'Nitrate-Nitrite (N)', 'Concentration mg/L', station_colname, selsit),
+    # make_plot(phosphate_data, 'Phosphate (PO4)', 'Concentration (mg/L)', station_colname, selsit),
+    nrows = 1,  # must equal the number of make_plot() above
     shareX = T, titleY = T, which_layout = 1
-    ) %>% 
+  ) %>% 
     rangeslider(thickness = 0.02) %>%
     layout(
       title = paste(
