@@ -58,9 +58,15 @@ maxyr <- 2025
 #         * region (eg: fk reef traact)
 
 # locations
-locs <- epcdata %>% 
-  select(epchc_station, Longitude, Latitude, bay_segment, Site) %>% 
-  unique %>% 
+# locs <- epcdata %>% 
+#   select(epchc_station, Longitude, Latitude, bay_segment, Site) %>% 
+#   unique %>% 
+#   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
+
+locs <- epcdata %>%
+  select(epchc_station, Longitude, Latitude, bay_segment, Site) %>%
+  group_by(epchc_station, Longitude, Latitude, bay_segment, Site) %>%
+  summarise(n_data = n(), .groups = 'drop') %>%
   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
 
 downloadButtonRmd <- function (outputId, label = "Download", class = NULL, ...)  {
@@ -162,7 +168,7 @@ bsmap <- mapview(locs, homebutton = F, legend = F) %>%
   leaflet::addCircleMarkers(
     stroke = F,
     fillOpacity = 0.3,
-    # radius = ~scale(years_of_sampling, center = min(years_of_sampling), scale = max(years_of_sampling) - min(years_of_sampling)) * 10 + 4,
+    radius = ~scale(n_data, center = min(n_data), scale = max(n_data) - min(n_data)) * 10 + 4,
     data = locs, #filter(locs, bay_segment %in% c("DERM", "AOML")),
     layerId = ~epchc_station,
     color = ~color_factor(bay_segment),
