@@ -67,7 +67,7 @@ maxyr <- 2025
 
 # locations
 locs <- epcdata %>% 
-  select(epchc_station, Longitude, Latitude) %>% 
+  select(epchc_station, Longitude, Latitude, bay_segment, Site) %>% 
   unique %>% 
   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
 
@@ -91,15 +91,26 @@ selplo <- reactive({
   
   source('R/make_plot.R')
 
-  selected_site <- filter(locs, epchc_station == selsit)
+  selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   # TODO ensure selected site len == 1
   station_colname <- 'epchc_station'
   out <- subplot(
-    make_plot(epcdata, 'Chlorophyll-a', 'Concentration (ug/L)', station_colname, selsit),
-    # make_plot(turbid_data, 'Turbidity', 'NTU', station_colname, selsit),
-    # make_plot(nitrogen_data, 'Nitrate-Nitrite (N)', 'Concentration mg/L', station_colname, selsit),
-    # make_plot(phosphate_data, 'Phosphate (PO4)', 'Concentration (mg/L)', station_colname, selsit),
-    nrows = 1,  # must equal the number of make_plot() above
+    # TODO: do this only for the parameters that have data
+    make_plot(epcdata, 'Chlorophyll a', 'Concentration (ug/L)', "epchc_station", selsit),
+    make_plot(epcdata, 'Ammonium (N)', 'Concentrationj (mg/L)', "epchc_station", selsit),
+    make_plot(epcdata, 'Nitrate-Nitrite (N)', 'Concentration (mg/L)', station_colname, selsit),
+    make_plot(epcdata, 'Nitrite (N)', 'Concentration (mg/L)', station_colname, selsit),
+    make_plot(epcdata, 'Nitrate (N)', 'Concentration (mg/L)', station_colname, selsit),
+    make_plot(epcdata, 'Orthophosphate (P)', 'Concentration (mg/L)', station_colname, selsit),
+    make_plot(epcdata, 'Silica', 'Concentration (mg/L)', station_colname, selsit),
+    # TODO: these are only commented out because there is no data for the default site
+    # make_plot(epcdata, 'Nitrogen- Total', '(mg N/L)', station_colname, selsit),
+    # make_plot(epcdata, 'Nitrogen- Total Kjeldahl (P)', '(mg/L)', station_colname, selsit),
+    # make_plot(epcdata, 'Phosphorus- Total', 'Concentration (mg/L)', station_colname, selsit),
+    # make_plot(epcdata, 'Turbidity', 'NTU', station_colname, selsit),
+    # nrows must equal the number of make_plot() calls above
+    # nrows = 11,
+    nrows = 7,
     shareX = T, titleY = T, which_layout = 1
   ) %>% 
     rangeslider(thickness = 0.02) %>%
@@ -164,7 +175,7 @@ bsmap <- mapview(locs, homebutton = F, legend = F) %>%
   leaflet::addCircleMarkers(
     stroke = F,
     fillOpacity = 0.3,
-    radius = ~scale(years_of_sampling, center = min(years_of_sampling), scale = max(years_of_sampling) - min(years_of_sampling)) * 10 + 4,
+    # radius = ~scale(years_of_sampling, center = min(years_of_sampling), scale = max(years_of_sampling) - min(years_of_sampling)) * 10 + 4,
     data = locs, #filter(locs, bay_segment %in% c("DERM", "AOML")),
     layerId = ~epchc_station,
     color = ~color_factor(bay_segment),  # TODO: this is not working

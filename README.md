@@ -1,6 +1,11 @@
 # README
 Prototype dashboard for viewing water quality parameters around FL.
 
+# Testing
+```r
+source("./run_tests.R")
+```
+
 # Upstream resources
 This dashboard was based on [TBEP's wq-dashboard](https://github.com/tbep-tech/wq-dash).
 Info below is held over from that repo.
