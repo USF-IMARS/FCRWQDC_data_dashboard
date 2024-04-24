@@ -81,7 +81,6 @@ downloadButtonRmd <- function (outputId, label = "Download", class = NULL, ...) 
 ```{r reactives}
 # selected site plots
 selplo <- reactive({
-  
   # selected_site
   selsit <- input$map_marker_click$id
   
@@ -95,7 +94,6 @@ selplo <- reactive({
   # TODO ensure selected site len == 1
   station_colname <- 'epchc_station'
   out <- subplot(
-    # TODO: do this only for the parameters that have data
     make_plot(epcdata, 'Chlorophyll a', 'Concentration (ug/L)', "epchc_station", selsit),
     make_plot(epcdata, 'Ammonium (N)', 'Concentrationj (mg/L)', "epchc_station", selsit),
     make_plot(epcdata, 'Nitrate-Nitrite (N)', 'Concentration (mg/L)', station_colname, selsit),
@@ -103,14 +101,13 @@ selplo <- reactive({
     make_plot(epcdata, 'Nitrate (N)', 'Concentration (mg/L)', station_colname, selsit),
     make_plot(epcdata, 'Orthophosphate (P)', 'Concentration (mg/L)', station_colname, selsit),
     make_plot(epcdata, 'Silica', 'Concentration (mg/L)', station_colname, selsit),
-    # TODO: these are only commented out because there is no data for the default site
-    # make_plot(epcdata, 'Nitrogen- Total', '(mg N/L)', station_colname, selsit),
-    # make_plot(epcdata, 'Nitrogen- Total Kjeldahl (P)', '(mg/L)', station_colname, selsit),
-    # make_plot(epcdata, 'Phosphorus- Total', 'Concentration (mg/L)', station_colname, selsit),
-    # make_plot(epcdata, 'Turbidity', 'NTU', station_colname, selsit),
+    make_plot(epcdata, 'Nitrogen- Total', '(mg N/L)', station_colname, selsit),
+    make_plot(epcdata, 'Nitrogen- Total Kjeldahl (P)', '(mg/L)', station_colname, selsit),
+    make_plot(epcdata, 'Phosphorus- Total', 'Concentration (mg/L)', station_colname, selsit),
+    make_plot(epcdata, 'Turbidity', 'NTU', station_colname, selsit),
     # nrows must equal the number of make_plot() calls above
-    # nrows = 11,
-    nrows = 7,
+    nrows = 11,
+    # nrows = 7,
     shareX = T, titleY = T, which_layout = 1
   ) %>% 
     rangeslider(thickness = 0.02) %>%

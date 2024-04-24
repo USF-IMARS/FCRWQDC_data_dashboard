@@ -1,4 +1,5 @@
 library(testthat)
+library(here)
 source('make_plot.R')
 test_that("make_plot can run", {
   source('data_loader.R')
@@ -15,3 +16,13 @@ test_that("make_plot can run", {
   expect_s3_class(result, "htmlwidget")
 })
 
+test_that("make_plot runs for empty data" {
+  source(here('R/data_loader.R'))
+  result <- make_plot(
+    dataframe = load_wq_cleaned_df('./data/df_cleaned.csv'),
+    varname = 'fake_name',
+    ylabel = 'fake name',
+    station_colname = 'epchc_station',
+    selsit = 'AOML.1'
+  )
+})
