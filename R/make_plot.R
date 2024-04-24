@@ -35,7 +35,7 @@ make_plot <- function(dataframe, varname, ylabel, station_colname, selsit){
   print(glue("plotting {length(toplo)} points..."))
   if(nrow(toplo) < 1 ){  # if no data for this param
     # Create a new row to append
-    new_row <- tibble(Date = as.Date("2010-01-01"), ydata = 0)
+    new_row <- tibble(Date = as.Date("2022-01-01"), ydata = 0)
     # Append the new row to the tibble
     toplo <- bind_rows(toplo, new_row)
   }
