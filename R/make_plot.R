@@ -5,8 +5,11 @@ fml <- "Lato Light"
 
 pthm <- theme(
   axis.text.x = element_text(size = 11, angle = 45, hjust = 1),
-  legend.text = element_text(size = 12), 
-  axis.title.y = element_text(size = 12),
+  # legend.text = element_text(size = 12), 
+  axis.text.y = element_text(size = 11),
+  # axis.title.y = element_text(angle = 45),
+  
+  # plot.title = element_text(hjust = 0.5, vjust = -10),
   text = element_text(fml), 
   legend.position = 'top',
   # panel.grid.minor=element_blank(),
