@@ -94,27 +94,25 @@ selplo <- reactive({
   # TODO ensure selected site len == 1
   station_colname <- 'epchc_station'
   out <- subplot(
-    make_plot(epcdata, 'Chlorophyll a', 'Concentration (ug/L)', "epchc_station", selsit),
-    make_plot(epcdata, 'Ammonium (N)', 'Concentrationj (mg/L)', "epchc_station", selsit),
-    make_plot(epcdata, 'Nitrate-Nitrite (N)', 'Concentration (mg/L)', station_colname, selsit),
-    make_plot(epcdata, 'Nitrite (N)', 'Concentration (mg/L)', station_colname, selsit),
-    make_plot(epcdata, 'Nitrate (N)', 'Concentration (mg/L)', station_colname, selsit),
-    make_plot(epcdata, 'Orthophosphate (P)', 'Concentration (mg/L)', station_colname, selsit),
-    make_plot(epcdata, 'Silica', 'Concentration (mg/L)', station_colname, selsit),
-    make_plot(epcdata, 'Nitrogen- Total', '(mg N/L)', station_colname, selsit),
-    make_plot(epcdata, 'Nitrogen- Total Kjeldahl (P)', '(mg/L)', station_colname, selsit),
-    make_plot(epcdata, 'Phosphorus- Total', 'Concentration (mg/L)', station_colname, selsit),
+    make_plot(epcdata, 'Chlorophyll a', 'ug/L', "epchc_station", selsit),
+    make_plot(epcdata, 'Ammonium (N)', 'mg/L', "epchc_station", selsit),
+    # make_plot(epcdata, 'Nitrate-Nitrite (N)', 'mg/L', station_colname, selsit),
+    # make_plot(epcdata, 'Nitrite (N)', 'mg/L', station_colname, selsit),
+    # make_plot(epcdata, 'Nitrate (N)', 'mg/L', station_colname, selsit),
+    make_plot(epcdata, 'Orthophosphate (P)', 'mg/L', station_colname, selsit),
+    make_plot(epcdata, 'Silica', 'mg/L', station_colname, selsit),
+    make_plot(epcdata, 'Nitrogen- Total', 'mg N/L', station_colname, selsit),
+    # make_plot(epcdata, 'Nitrogen- Total Kjeldahl (P)', 'mg/L', station_colname, selsit),
+    make_plot(epcdata, 'Phosphorus- Total', 'mg/L', station_colname, selsit),
     make_plot(epcdata, 'Turbidity', 'NTU', station_colname, selsit),
     # nrows must equal the number of make_plot() calls above
-    nrows = 11,
-    # nrows = 7,
+    # nrows = 11,
+    nrows = 7,
     shareX = T, titleY = T, which_layout = 1
   ) %>% 
     rangeslider(thickness = 0.02) %>%
     layout(
-      title = paste(
-        selected_site$bay_segment, selected_site$Site, 'n(', selsit, ')'
-      ),
+      title = selsit,
       legend = list(font = list(size = 16)), 
       font = list(family = fml),
       xaxis = list(

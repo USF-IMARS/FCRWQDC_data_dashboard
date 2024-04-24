@@ -43,13 +43,14 @@ make_plot <- function(dataframe, varname, ylabel, station_colname, selsit){
     geom_point(colour = "#427355", size = 0.5) +
     # scale_y_log10() + 
     labs(
+      title = varname,
       y = ylabel, 
       x = NULL
     ) +
-    pthm +
-    theme(
-      legend.title = element_blank()
-    )
+    pthm
+    # theme(
+    #   legend.title = element_blank()
+    # )
   p1 <- ggplotly(p1, dynamicTicks = T)
   # print(p1)
   return(p1)
