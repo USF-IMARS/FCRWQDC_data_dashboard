@@ -42,9 +42,11 @@ if(Sys.info()[1] == 'Windows')
   loadfonts(device = 'win', quiet = T)
 
 source('R/funcs.R')
-
-# === load data
 source('R/data_loader.R')
+```
+
+```{r load data}
+# === load data
 epcdata <- load_wq_cleaned_df("data/df_cleaned.csv")
 
 prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
@@ -68,7 +70,9 @@ locs <- epcdata %>%
   group_by(epchc_station, Longitude, Latitude, bay_segment, Site) %>%
   summarise(n_data = n(), .groups = 'drop') %>%
   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
+```
 
+```{r create download button}
 downloadButtonRmd <- function (outputId, label = "Download", class = NULL, ...)  {
   tags$a(id = outputId, class = paste("btn btn-default shiny-download-link", 
                                       class), href = "", target = "_blank", download = NA, 
