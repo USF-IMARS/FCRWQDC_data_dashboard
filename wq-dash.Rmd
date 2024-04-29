@@ -59,9 +59,14 @@ maxyr <- 2025
 #   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
 
 locs <- epcdata %>%
-  select(epchc_station, Longitude, Latitude, bay_segment, Site) %>%
-  group_by(epchc_station, Longitude, Latitude, bay_segment, Site) %>%
-  summarise(n_data = n(), .groups = 'drop') %>%
+  group_by(epchc_station) %>%
+  summarise(
+    n_data = n(), .groups = 'drop',
+    Latitude = mean(Latitude),
+    Longitude = mean(Longitude),
+    bay_segment = first(bay_segment),
+    Site = first(Site)
+  ) %>%
   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
 ```
 
