@@ -163,6 +163,8 @@ num_colors <- length(unique(locs$bay_segment))
 colors <- brewer.pal(n = num_colors, name = "Set1")
 color_factor <- colorFactor(palette = colors, levels = unique(locs$bay_segment))
 
+# TODO: add legend
+
 bsmap <- mapview(locs, homebutton = F, legend = F) %>% 
   .@map %>% 
   leafem::removeMouseCoordinates() %>% 
@@ -245,39 +247,69 @@ output$map <- renderLeaflet(bsmap)
 leafletOutput('map')
 ```
 
-### Using this page
+### About This Page
 
-This page shows the time series for chlorophyll and light attenuation at individual stations.  Data in this page can be useful to determine which stations may be driving segment averages that are displayed on pages 1-3.  Similarly, data in this page can be used to understand spatial patterns at scales smaller than individual bay segments. Begin by selecting a station on the map.  The selected station will be outlined in brown: 
+**Welcome to the Florida’s Coral Reef Unified Water Quality Data Visualization Tool.**
 
-<br>
-```{r, fig.align='center', out.width='40%'}
-knitr::include_graphics('www/stationsel.PNG')
-```
-<br>
+This page shows time series for a suite of parameters compiled in the Florida’s Coral Reef
+Unified Water Quality Database. 
+Station locations are shown in colors which signify the data provider at that location.
+The points on the map are sized proportionally to the amount of data points at that location. 
 
-Plots will appear on the right after a station is selected.  The plots show phytoplankton cell counts (top), chlorophyll concentration (middle), and secchi depth (bottom, from which light attenuation is derived).  For secchi data, red points indicate when the observation was marked as ">", which usually means the secchi disk was on the bottom and water clarity exceeded the depth at the station at the time of sampling.  The three plots are linked and the x-axis can be adjusted to zoom in on a time period of interest. The subplot on the very bottom is a reference for the relative zoom on the x-axis:
+**Data are collected by the following data providers:**
 
-<br>
-```{r, fig.align='center', out.width='80%'}
-knitr::include_graphics('www/stationsel2.PNG')
-```
-<br>
+* NOAA Atlantic Oceanographic and Meteorological Laboratory (AOML - blue)
+* FIU Southeast Environmental Research Center (SERC - pink)
+* MDC Department of Environmental Resource Management (DERM - brown)
+* Florida Department of Environmental Protection (FDEP - yellow)
+* Broward County (BC - orange)
+* City of Miami Beach (MB - gray)
+* Biscayne Bay Aquatic Preserve (BBAP - green)
+* Palm Beach County (PBC)
 
-Ranges on the x-axis can be chosen by clicking on each plot and dragging the mouse pointer over the desired time range. Ranges can also be selected by clicking the buttons on the top that show predefined time periods.  For example, selecting the five year button will show data for only five years from the most recent date in the plot.  Note the contraction of the reference plot on the very bottom compared to the previous example:
+The following water quality parameters are collected and shown as time series. Note that not all
+data providers collect all listed parameters.
 
-<br>
-```{r, fig.align='center', out.width='80%'}
-knitr::include_graphics('www/stationsel3.PNG')
-```
-<br>
+Nitrogen
 
-The phytoplankton data on the top plot show summed cell counts for the selected station in quarterly time steps (e.g., Jan/Feb/Mar 2005, Apr/May/Jun 2005, etc.).  These plots are useful to understand variation in dominant phytoplankton taxa over time at a station. The plot can also be filtered to show specific taxa by clicking on the names in the legend.  The example below shows trends in *Pyrodinium bahamense* at station 66.  Note that the legend entries for all phytoplankton taxa except *Pyrodinium bahamense* are shown in gray, indicating they have been removed from the plot by clicking each one with the mouse. 
+* Total Nitrogen (TN)
+* Nitrite (NO2)
+* Nitrate (NO3)
+* Nitrate – Nitrite (N) ???
+* Ammonium (NH4)
+* Total Kjeldahl Nitrogen (TKN)
+
+Phosphorus
+
+* Total Phosphorus (TP)
+* Orthophosphates (OPO4)
+
+Water Clarity
+
+* Chlorophyll-a
+* Turbidity
+* Silicates
+
+**How to use this tool:**
+
+Begin by selecting a sampling location on the map. To see station locations, you can move
+around using your mouse and zoom into the map. Once a location is selected, that station will be
+outlined in brown:
 
 <br>
 ```{r, fig.align='center', out.width='100%'}
-knitr::include_graphics('www/stationsel4.PNG')
+knitr::include_graphics('www/map_screenshot.png')
 ```
 <br>
+
+A series of plots will appear on the right after a station is selected. Above the plots, the title
+indicates the data provider and the sampling location separated by a period. The plots show time
+series of sampled parameters at that location. Mouse over any plot to see individual values. The
+plots are linked and the x-axis can be adjusted to zoom in on a time period of interest. To adjust
+time ranges on the x-axis, click on any plot and drag the mouse pointer over the desired time
+range. The plot on the very bottom is a reference for the relative zoom on the x-axis. Time ranges
+can also be adjusted with the sliders at each end of this plot.
+
 
 Column {data-width=500}
 -----------------------------------------------------------------------
