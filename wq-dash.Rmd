@@ -80,10 +80,10 @@ downloadButtonRmd <- function (outputId, label = "Download", class = NULL, ...) 
 
 ```{r reactives}
 # selected site plots
-selplo <- reactive({
+wq_plo <- reactive({
   # selected_site
   selsit <- input$map_marker_click$id
-  
+
   # select 1st station if station not selected
   if(is.null(selsit))  
     selsit <- locs[1, ]$epchc_station 
@@ -93,20 +93,11 @@ selplo <- reactive({
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   station_colname <- 'epchc_station'
   out <- subplot(
-    make_plot(epcdata, 'Ammonium (N)', 'Ammonium \n mg/L', "epchc_station", selsit),
-    # make_plot(epcdata, 'Nitrate-Nitrite (N)', 'mg/L', station_colname, selsit),
-    # make_plot(epcdata, 'Nitrite (N)', 'mg/L', station_colname, selsit),
-    # make_plot(epcdata, 'Nitrate (N)', 'mg/L', station_colname, selsit),
     make_plot(epcdata, 'Silica', 'Silica \n mg/L', station_colname, selsit),
-    make_plot(epcdata, 'Orthophosphate (P)', 'Orthophosph. \n mg/L', station_colname, selsit),
     make_plot(epcdata, 'Chlorophyll a', 'Chlor-a \n ug/L', "epchc_station", selsit),
     make_plot(epcdata, 'Turbidity', 'Turbidity \n NTU', station_colname, selsit),
-    make_plot(epcdata, 'Nitrogen- Total', 'Nitrogen \n mg N/L', station_colname, selsit),
-    # make_plot(epcdata, 'Nitrogen- Total Kjeldahl (P)', 'mg/L', station_colname, selsit),
-    make_plot(epcdata, 'Phosphorus- Total', 'Phosphorus \n mg/L', station_colname, selsit),
     # nrows must equal the number of make_plot() calls above
-    # nrows = 11,
-    nrows = 7,
+    nrows = 3,
     shareX = T, shareY = F, titleX = T, titleY = T, which_layout = 1
 
   ) %>% 
@@ -150,9 +141,135 @@ selplo <- reactive({
         filename = "myplot"
       )
     )
-  
   return(out)
+})
+nitro_plo <- reactive({
+  # selected_site
+  selsit <- input$map_marker_click$id
+
+  # select 1st station if station not selected
+  if(is.null(selsit))  
+    selsit <- locs[1, ]$epchc_station 
   
+  source('R/make_plot.R')
+
+  selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
+  station_colname <- 'epchc_station'
+  out <- subplot(
+    make_plot(epcdata, 'Ammonium (N)', 'Ammonium \n mg/L', "epchc_station", selsit),
+    make_plot(epcdata, 'Nitrate-Nitrite (N)', 'mg/L', station_colname, selsit),
+    make_plot(epcdata, 'Nitrite (N)', 'mg/L', station_colname, selsit),
+    make_plot(epcdata, 'Nitrate (N)', 'mg/L', station_colname, selsit),
+    make_plot(epcdata, 'Nitrogen- Total', 'Nitrogen \n mg N/L', station_colname, selsit),
+    make_plot(epcdata, 'Nitrogen- Total Kjeldahl (P)', 'mg/L', station_colname, selsit),
+    # nrows must equal the number of make_plot() calls above
+    nrows = 6,
+    shareX = T, shareY = F, titleX = T, titleY = T, which_layout = 1
+
+  ) %>% 
+    rangeslider(thickness = 0.02) %>%  # TODO: disable rangeslider inset timeseries
+    layout(
+      title = selsit,
+      legend = list(font = list(size = 16)), 
+      font = list(family = fml),
+      xaxis = list(
+        domain = c(0.02, 1),
+        rangeselector = list(
+          buttons = list(
+            list(step = "all"),
+            list(
+              count = 20,
+              label = "20 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 10,
+              label = "10 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 5,
+              label = "5 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "1 yr",
+              step = "year",
+              stepmode = "backward")
+          )
+        )
+      )
+    ) %>% 
+    plotly::config(
+      toImageButtonOptions = list(
+        format = "svg",
+        filename = "myplot"
+      )
+    )
+  return(out)
+})
+phos_plo <- reactive({
+  # selected_site
+  selsit <- input$map_marker_click$id
+
+  # select 1st station if station not selected
+  if(is.null(selsit))  
+    selsit <- locs[1, ]$epchc_station 
+  
+  source('R/make_plot.R')
+
+  selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
+  station_colname <- 'epchc_station'
+  out <- subplot(
+    make_plot(epcdata, 'Orthophosphate (P)', 'Orthophosph. \n mg/L', station_colname, selsit),
+    make_plot(epcdata, 'Phosphorus- Total', 'Phosphorus \n mg/L', station_colname, selsit),
+    # nrows must equal the number of make_plot() calls above
+    nrows = 2,
+    shareX = T, shareY = F, titleX = T, titleY = T, which_layout = 1
+
+  ) %>% 
+    rangeslider(thickness = 0.02) %>%  # TODO: disable rangeslider inset timeseries
+    layout(
+      title = selsit,
+      legend = list(font = list(size = 16)), 
+      font = list(family = fml),
+      xaxis = list(
+        domain = c(0.02, 1),
+        rangeselector = list(
+          buttons = list(
+            list(step = "all"),
+            list(
+              count = 20,
+              label = "20 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 10,
+              label = "10 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 5,
+              label = "5 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "1 yr",
+              step = "year",
+              stepmode = "backward")
+          )
+        )
+      )
+    ) %>% 
+    plotly::config(
+      toImageButtonOptions = list(
+        format = "svg",
+        filename = "myplot"
+      )
+    )
+  return(out)
 })
 ```
 
@@ -311,13 +428,26 @@ range. The plot on the very bottom is a reference for the relative zoom on the x
 can also be adjusted with the sliders at each end of this plot.
 
 
-Column {data-width=500}
+Column {.tabset .tabset-fade data-width=500}
 -----------------------------------------------------------------------
 
-### PLOT
+### Water Clarity
 
 ```{r}
-output$selplo <- renderPlotly(selplo())
-plotlyOutput('selplo')
+output$wq_plo <- renderPlotly(wq_plo())
+plotlyOutput('wq_plo')
 ```
 
+### Nitrogen
+
+```{r}
+output$nitro_plo <- renderPlotly(nitro_plo())
+plotlyOutput('nitro_plo')
+```
+
+### Phosphorus
+
+```{r}
+output$phos_plo <- renderPlotly(phos_plo())
+plotlyOutput('phos_plo')
+```
