@@ -35,9 +35,10 @@ load_wq_cleaned_df <- function(fpath){
       bay_segment = Source,
       yr = Year,
       mo = Month,
+      d  = Day,
       chla = Value,  # TODO: fix this
       epchc_station = paste(Source, Site, sep="."),
-      SampleTimeString = paste(yr, mo, ASSUMED_DAY_OF_MONTH, sep="-"),
+      SampleTimeString = paste(yr, mo, d, sep="-"),
       SampleTime = as.POSIXct(SampleTimeString, format="%Y-%m-%d")
     ) |>
     tidyr::drop_na(
