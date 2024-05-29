@@ -380,14 +380,14 @@ The points on the map are sized proportionally to the amount of data points at t
 
 **Data are collected by the following data providers:**
 
-* NOAA Atlantic Oceanographic and Meteorological Laboratory (AOML - blue)
-* FIU Southeast Environmental Research Center (SERC - pink)
-* MDC Department of Environmental Resource Management (DERM - brown)
-* Florida Department of Environmental Protection (FDEP - yellow)
-* Broward County (BC - orange)
-* City of Miami Beach (MB - gray)
-* Biscayne Bay Aquatic Preserve (BBAP - green)
-* Palm Beach County (PBC)
+* NOAA Atlantic Oceanographic and Meteorological Laboratory (AOML - purple)
+* FIU Southeast Environmental Research Center (FIU - orange)
+* MDC Department of Environmental Resource Management (DERM - red)
+* Florida Department of Environmental Protection (DEP - light brown)
+* Broward County (BROWARD - green)
+* City of Miami Beach (Miami Beach - tan)
+* Biscayne Bay Aquatic Preserve (BBAP - blue)
+* Palm Beach County (PBC - dark brown)
 
 The following water quality parameters are collected and shown as time series. Note that not all
 data providers collect all listed parameters.
@@ -397,7 +397,7 @@ Nitrogen
 * Total Nitrogen (TN)
 * Nitrite (NO2)
 * Nitrate (NO3)
-* Nitrate – Nitrite (N) ???
+* Nitrate – Nitrite (N)
 * Ammonium (NH4)
 * Total Kjeldahl Nitrogen (TKN)
 
