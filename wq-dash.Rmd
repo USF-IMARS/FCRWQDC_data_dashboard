@@ -277,7 +277,12 @@ phos_plo <- reactive({
 # create colormap
 locs$bay_segment <- factor(locs$bay_segment)
 num_colors <- length(unique(locs$bay_segment))
-colors <- brewer.pal(n = num_colors, name = "Set1")
+# colors <- brewer.pal(n = num_colors, name = "Paired")
+# colors <- c("#7FC97F", "#BEAED4", "#FFC088", "#FFFF99", "#3811FF", "#F00270","#BF5B17", "#660000")]
+colors <- c(
+  "#1111E3", "#1F78B4", "#B2DF8A", "#33A02C","#FB9A99","#E31A1C","#FDBF6F"
+  ,"#FF7f00","#CAB2D6","#6A3D9A","#FFFF99","#A65628"
+)
 color_factor <- colorFactor(palette = colors, levels = unique(locs$bay_segment))
 
 # TODO: add legend
@@ -288,7 +293,7 @@ bsmap <- mapview(locs, homebutton = F, legend = F) %>%
   clearMarkers() %>%
   leaflet::addCircleMarkers(
     stroke = F,
-    fillOpacity = 0.3,
+    fillOpacity = 0.5,
     radius = ~scale(n_data, center = min(n_data), scale = max(n_data) - min(n_data)) * 10 + 4,
     data = locs, #filter(locs, bay_segment %in% c("DERM", "AOML")),
     layerId = ~epchc_station,
