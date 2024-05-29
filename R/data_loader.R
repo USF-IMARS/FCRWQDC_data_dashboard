@@ -43,7 +43,9 @@ load_wq_cleaned_df <- function(fpath){
     tidyr::drop_na(
       Latitude, Longitude,
       chla,
-    )
+    ) |>
+    # drop specific data providers that we don't want to show
+    filter(!Source %in% c("21FLWQA", "BBWW"))
   return(epcdata)
 }
 
