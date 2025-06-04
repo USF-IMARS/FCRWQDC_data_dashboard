@@ -16,3 +16,14 @@ Info below is held over from that repo.
 Materials for TBEP water quality dashboard.  
 
 [Shiny](http://shiny.tbep.org/wq-dash/)
+
+
+-------------
+
+Data shown here has undergone steps of ingestion, analysis, and cleaning.
+The latest version of data cleaning is documented [here](https://github.com/USF-IMARS/WIN_data_ingest).
+
+Older analyses include:
+
+* [older data compilation efforts using data from previous years](https://github.com/USF-IMARS/dep-wq-data-report)
+* [comparison of older data to data from SEACAR](https://github.com/USF-IMARS/dep-seacar-data-compare)
