@@ -39,11 +39,14 @@ source('R/data_loader.R')
 ```
 
 ```{r load data}
-# === load data
-epcdata <- load_wq_cleaned_df("data/df_cleaned.csv")
-
 prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
-maxyr <- 2025
+
+# === load data
+# maxyr <- 2025
+# epcdata <- load_wq_cleaned_df("data/df_cleaned.csv", maxyr)
+
+maxyr <- 2026  # should be current year + 1
+epcdata <- load_wq_cleaned_df("data/allData.csv", maxyr)
 
 # TODO: data filters before showing on display
 #       Dropdowns with 
@@ -157,13 +160,13 @@ nitro_plo <- reactive({
   station_colname <- 'epchc_station'
   out <- subplot(
     make_plot(epcdata, 'Ammonium (N)', 'Ammonium \n mg/L', "epchc_station", selsit),
-    make_plot(epcdata, 'Nitrate-Nitrite (N)', 'mg/L', station_colname, selsit),
-    make_plot(epcdata, 'Nitrite (N)', 'mg/L', station_colname, selsit),
-    make_plot(epcdata, 'Nitrate (N)', 'mg/L', station_colname, selsit),
+    # make_plot(epcdata, 'Nitrate-Nitrite (N)', 'mg/L', station_colname, selsit),
+    # make_plot(epcdata, 'Nitrite (N)', 'mg/L', station_colname, selsit),
+    # make_plot(epcdata, 'Nitrate (N)', 'mg/L', station_colname, selsit),
     make_plot(epcdata, 'Nitrogen- Total', 'Nitrogen \n mg N/L', station_colname, selsit),
-    make_plot(epcdata, 'Nitrogen- Total Kjeldahl (P)', 'mg/L', station_colname, selsit),
+    make_plot(epcdata, 'Nitrogen- Total Kjeldahl (P)', 'Kjeldahl N mg/L', station_colname, selsit),
     # nrows must equal the number of make_plot() calls above
-    nrows = 6,
+    nrows = 3,
     shareX = T, shareY = F, titleX = T, titleY = T, which_layout = 1
 
   ) %>% 

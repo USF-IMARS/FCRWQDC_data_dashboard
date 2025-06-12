@@ -19,35 +19,79 @@ load_station_data <- function(fpath){
   return(station_data)
 }
 
-load_wq_cleaned_df <- function(fpath){
+load_wq_cleaned_df <- function(fpath, year){
   # load data from cleaned df csv file.
-  # example file:
-  #
-  # (base) tylar@tylar-gram:~/xtra/repos/wq-dash$ head data/df_cleaned.csv 
-  # "...1","Source","Site","Latitude","Longitude","Month","Year","Parameter","Value","Units","Total Depth","Sample Depth","Trend Analysis","Continuous","Start Date","End Date","verbatimValue","VerbatimLatitude","verbatimLongitude"
-  # 1,"AOML","1",25.6433,-80.1267,1,1998,"Chlorophyll a",1.00488,"ug/L",NA,0,"Yes","Yes",1998,"Present","1.00488","25.643
-  ASSUMED_DAY_OF_MONTH <- 15
-  epcdata <- readr::read_csv(
-    fpath
-  ) |>
-    dplyr::mutate(
-      Site = Site,
-      bay_segment = Source,
-      yr = Year,
-      mo = Month,
-      d  = Day,
-      chla = Value,  # TODO: fix this
-      epchc_station = paste(Source, Site, sep="."),
-      SampleTimeString = paste(yr, mo, d, sep="-"),
-      SampleTime = as.POSIXct(SampleTimeString, format="%Y-%m-%d")
+  if(year == 2025){
+    # example file:
+    #
+    # (base) tylar@tylar-gram:~/xtra/repos/wq-dash$ head data/df_cleaned.csv 
+    # "...1","Source","Site","Latitude","Longitude","Month","Year","Parameter","Value","Units","Total Depth","Sample Depth","Trend Analysis","Continuous","Start Date","End Date","verbatimValue","VerbatimLatitude","verbatimLongitude"
+    # 1,"AOML","1",25.6433,-80.1267,1,1998,"Chlorophyll a",1.00488,"ug/L",NA,0,"Yes","Yes",1998,"Present","1.00488","25.643
+    ASSUMED_DAY_OF_MONTH <- 15
+    epcdata <- readr::read_csv(
+      fpath
     ) |>
-    tidyr::drop_na(
-      Latitude, Longitude,
-      chla,
+      dplyr::mutate(
+        Site = Site,
+        bay_segment = Source,
+        yr = Year,
+        mo = Month,
+        d  = Day,
+        chla = Value,  # TODO: fix this
+        epchc_station = paste(Source, Site, sep="."),
+        SampleTimeString = paste(yr, mo, d, sep="-"),
+        SampleTime = as.POSIXct(SampleTimeString, format="%Y-%m-%d")
+      ) |>
+      tidyr::drop_na(
+        Latitude, Longitude,
+        chla,
+      ) |>
+      # drop specific data providers that we don't want to show
+      filter(!Source %in% c("21FLWQA", "BBWW"))
+    return(epcdata)
+  } else{
+    epcdata <- readr::read_csv(
+      fpath
     ) |>
-    # drop specific data providers that we don't want to show
-    filter(!Source %in% c("21FLWQA", "BBWW"))
-  return(epcdata)
+      dplyr::mutate(
+        Site = site,
+        bay_segment = source,
+        Source = source,
+        Parameter = analyte,
+        Units = units,
+        Sample.Depth = sample_depth,
+        SampleTimeString = as.character(datetime),
+        SampleTime = as.POSIXct(datetime, format = "%m/%d/%Y %H:%M:%S"),
+        yr = year(SampleTime),
+        mo = month(SampleTime),
+        d  = day(SampleTime),
+        Value = value,
+        chla = value,  # TODO: fix this
+        epchc_station = paste(source, site, sep="."),
+        Latitude = latitude,
+        Longitude = longitude
+      ) |>
+      tidyr::drop_na(
+        Latitude, Longitude,
+        chla,
+      ) |>
+      # map from new names to old names
+      mutate(
+        Parameter = case_when(
+          Parameter == "Silicate" ~ "Silica",
+          Parameter == "Chlorophyll_a" ~ "Chlorophyll a",
+          # Parameter== "Turbidity" ~ "Turbidity",
+          # Parameter== "Ammonium" ~ "Ammonium",
+          Parameter == "Nitrate+Nitrite" ~ 'Nitrate-Nitrite (N)',
+          Parameter == "Nitrite" ~ "Nitrite (N)",
+          Parameter == "Nitrate" ~ "Nitrate (N)",
+          Parameter == "Total_Nitrogen" ~ "Nitrogen- Total",
+          Parameter == "Total_Kjeldahl_Nitrogen" ~ "Nitrogen- Total Kjeldahl (P)",
+          Parameter == "Orthophosphate" ~ "Orthophosphate (P)",
+          Parameter == "Phosphorus" ~ "Phosphorus- Total"
+        ))
+    return(epcdata)
+  }
 }
 
 load_wq_data_from_merged_param_files <- function (fpath)  {
