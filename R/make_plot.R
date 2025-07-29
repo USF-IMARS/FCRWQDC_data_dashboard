@@ -17,28 +17,33 @@ pthm <- theme(
   panel.background = element_rect(fill = '#ECECEC')
 ) 
 
-make_plot <- function(dataframe, varname, ylabel, station_colname, selsit){
+make_plot <- function(dataframe, varname, ylabel, selsit){
   # dataframe <- epcdata  # dataframe: df to plot
   # varname <- 'chla'  # str: column name of variable to plot
   # ylabel <- 'Concentration (ug/L)'  # str: label for y axis
-  # station_colname <- 'epchc_station'  # str: name of column with station ids
   # selsit : str : selected site
-  # data to plot
+  # assumes site column named "site"
+  # assumes parameter column named "analyte"
   toplo <- dataframe %>%
-    filter(epchc_station %in% selsit) %>% 
-    filter(Parameter == varname) %>%
+    filter(epchc_station == selsit) %>% 
+    filter(analyte == varname) %>%
     mutate(
-      Date = as.Date(SampleTime),
+      Date = as.Date(datetime),
       ydata = as.numeric(Value)
     ) 
   
-  print(glue("plotting {length(toplo)} points..."))
+  print(glue("plotting {nrow(toplo)} points..."))
+  
+  
+  # add a fake row if df is empty to prevent failures
   if(nrow(toplo) < 1 ){  # if no data for this param
     # Create a new row to append
     new_row <- tibble(Date = as.Date("2022-01-01"), ydata = 0)
     # Append the new row to the tibble
     toplo <- bind_rows(toplo, new_row)
   }
+  
+  
   p1 <- ggplot(toplo, aes(x = Date, y = ydata)) + 
     # geom_line(aes(colour = !!sym(varname))) +
     geom_line(colour = "#427355") +
