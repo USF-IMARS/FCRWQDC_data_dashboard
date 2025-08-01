@@ -1,6 +1,8 @@
 # README
 Prototype dashboard for viewing water quality parameters around FL.
 
+Data shown is ingested from multiple providers through processes documented in https://github.com/USF-IMARS/FCRWQDC_data_ingest.
+
 # Testing
 ```r
 source("./run_tests.R")
