@@ -3,6 +3,9 @@ Prototype dashboard for viewing water quality parameters around FL.
 
 Data shown is ingested from multiple providers through processes documented in https://github.com/USF-IMARS/FCRWQDC_data_ingest.
 
+For this application to work the `allData.csv` file produced by the ingestion and published in [this gdrive folder](https://drive.google.com/drive/folders/1QMUpJOwfAMG9dB_fYT0Yva3IBVRg27fr) must be placed in the `./data/` directory.
+This file is not tracked using git due to the large size of the file.
+
 # Testing
 ```r
 source("./run_tests.R")
