@@ -360,7 +360,7 @@ bsmap <- mapview(locs, homebutton = F, legend = F) %>%
   leaflet::addCircleMarkers(
     stroke = F,
     fillOpacity = 0.5,
-    radius = ~scale(n_data, center = min(n_data), scale = max(n_data) - min(n_data)) * 10 + 4,
+    radius = ~scale(n_data, center = min(n_data), scale = max(n_data) - min(n_data)) * 20 + 4,
     data = locs, #filter(locs, bay_segment %in% c("DERM", "AOML")),
     layerId = ~epchc_station,
     color = ~color_factor(bay_segment),
