@@ -46,14 +46,16 @@ prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
 # epcdata <- load_wq_cleaned_df("data/df_cleaned.csv", maxyr)
 
 maxyr <- 2026  # should be current year + 1
-epcdata <- load_wq_cleaned_df("data/allData.csv", maxyr)
+epcdata <- load_wq_cleaned_df("data/allData.csv", maxyr) %>%
+  filter(is.na(sample_depth) | sample_depth < 1)  # Show only surface samples
 
 # TODO: data filters before showing on display
 #       Dropdowns with 
 #         * start & end date
 #         * program
 #         * current vs historical
-#         * region (eg: fk reef traact)
+#         * region (eg: fk reef tract)
+
 
 # locations
 # locs <- epcdata %>% 

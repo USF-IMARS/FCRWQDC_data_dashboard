@@ -44,7 +44,14 @@ make_plot <- function(dataframe, varname, ylabel, selsit){
   }
   
   
-  p1 <- ggplot(toplo, aes(x = Date, y = ydata)) + 
+  p1 <- ggplot(
+    toplo, 
+    aes(
+      x = Date, 
+      y = ydata, 
+      text = paste0("Date: ", Date, 
+                    "<br>", ylabel, ": ", ydata,
+                    "<br>Sample Depth: ", sample_depth))) + 
     # geom_line(aes(colour = !!sym(varname))) +
     geom_line(colour = "#427355") +
     # scale_colour_manual(values = "#427355") + 
@@ -59,7 +66,7 @@ make_plot <- function(dataframe, varname, ylabel, selsit){
     # theme(
     #   legend.title = element_blank()
     # )
-  p1 <- ggplotly(p1, dynamicTicks = T)
+  p1 <- ggplotly(p1, dynamicTicks = T, tooltip="text")
   # print(p1)
   return(p1)
 
