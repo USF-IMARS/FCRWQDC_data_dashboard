@@ -355,28 +355,39 @@ color_factor <- colorFactor(palette = colors, levels = unique(locs$bay_segment))
 
 # TODO: add legend
 
+createMapMarkers <- function(map_obj, station_data){
+  map_obj %>%
+    clearMarkers() %>%
+    addCircleMarkers(
+      stroke = F,
+      fillOpacity = 0.5,
+      radius = ~scale(n_data, center = min(n_data), scale = max(n_data) - min(n_data)) * 20 + 4,
+      data = station_data,
+      layerId = ~epchc_station,
+      color = ~color_factor(bay_segment),
+      # TODO: add legend for marker colors
+    ) %>% 
+    addCircleMarkers(  # highlight the selected marker
+        data = station_data[1, ],
+        layerId = 'selsit',
+        stroke = T,
+        color = '#5C4A42',
+        fill = F,
+        radius = 16, 
+        opacity = 1
+      )
+}
+
+getFilteredStationData <- function(){
+  req(input$param_select)
+  locs %>% 
+    filter(epchc_station %in% filtered_stations()$epchc_station)
+}
+
 bsmap <- mapview(locs, homebutton = F, legend = F) %>% 
   .@map %>% 
   leafem::removeMouseCoordinates() %>% 
-  clearMarkers() %>%
-  leaflet::addCircleMarkers(
-    stroke = F,
-    fillOpacity = 0.5,
-    radius = ~scale(n_data, center = min(n_data), scale = max(n_data) - min(n_data)) * 20 + 4,
-    data = locs, #filter(locs, bay_segment %in% c("DERM", "AOML")),
-    layerId = ~epchc_station,
-    color = ~color_factor(bay_segment),
-    # TODO: add legend for marker colors
-  ) %>% 
-  addCircleMarkers(  # highlight the selected marker
-      data = locs[1, ],
-      layerId = 'selsit',
-      stroke = T,
-      color = '#5C4A42',
-      fill = F,
-      radius = 16, 
-      opacity = 1
-    )
+  createMapMarkers(locs)
 
 # leaflet proxy for marker select
 map <- leafletProxy('map')
@@ -573,20 +584,7 @@ filtered_stations <- reactive({
 })
 
 # # observer to update map when parameter selection changes
-# observeEvent(input$param_select, {
-#   leafletProxy('map') %>%
-#     clearMarkers() %>%
-#     addCircleMarkers(
-#       data = filtered_stations(),
-#       lat = ~latitude, 
-#       lng = ~longitude,
-#       radius = 5,
-#       color = "black",
-#       fillColor = "#427355",
-#       fillOpacity = 0.7,
-#       stroke = TRUE,
-#       weight = 1,
-#       layerId = ~epchc_station,
-#       popup = ~epchc_station
-#     )
-# })
+observeEvent(input$param_select, {
+  leafletProxy('map') %>%
+    createMapMarkers(getFilteredStationData())
+})
