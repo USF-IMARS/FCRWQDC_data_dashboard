@@ -49,14 +49,6 @@ maxyr <- 2026  # should be current year + 1
 epcdata <- load_wq_cleaned_df("data/allData.csv", maxyr) %>%
   filter(is.na(sample_depth) | sample_depth < 1)  # Show only surface samples
 
-# TODO: data filters before showing on display
-#       Dropdowns with 
-#         * start & end date
-#         * program
-#         * current vs historical
-#         * region (eg: fk reef tract)
-
-
 # locations
 # locs <- epcdata %>% 
 #   select(epchc_station, Longitude, Latitude, bay_segment, Site) %>% 
@@ -616,4 +608,69 @@ observe({
       createMapMarkers(getFilteredStationData())
   }
 })
+
+# reactive expression for provider counts
+provider_counts <- reactive({
+  req(input$param_select, input$date_range)
+  if(is.null(input$param_select) || length(input$param_select) == 0){
+    return("No parameters selected")
+  }
+  
+  counts <- filtered_data() %>%
+    group_by(bay_segment) %>%
+    summarise(n = n(), .groups = 'drop') %>%
+    arrange(desc(n))
+  
+  if(nrow(counts) == 0){
+    return("No data matches selection")
+  }
+  
+  paste(counts$bay_segment, ":", counts$n, collapse = "\n\n")
+})
+
 ```
+------------------------------------------
+#### Number of Data Points in Selection:
+```{r}
+# bar chart output for provider counts
+output$provider_summary <- renderPlotly({
+  req(input$param_select, input$date_range)
+  if(is.null(input$param_select) || length(input$param_select) == 0){
+    return(ggplot() + theme_void() + 
+            annotate("text", x = 0.5, y = 0.5, label = "No parameters selected", 
+                    size = 6, hjust = 0.5, vjust = 0.5))
+  }
+  
+  counts <- filtered_data() %>%
+    group_by(bay_segment) %>%
+    summarise(n = n(), .groups = 'drop') %>%
+    arrange(desc(n))
+  
+  if(nrow(counts) == 0){
+    return(ggplot() + theme_void() + 
+            annotate("text", x = 0.5, y = 0.5, label = "No data matches selection", 
+                    size = 6, hjust = 0.5, vjust = 0.5))
+  }
+  
+  p <- ggplot(counts, aes(x = reorder(bay_segment, n), y = n, fill = bay_segment)) +
+    geom_col() +
+    coord_flip() +
+    labs(
+      title = "Data Points by Provider",
+      x = "Provider",
+      y = "Number of Data Points"
+    ) +
+    theme_minimal() +
+    theme(
+      legend.position = "none",
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    )
+  
+  ggplotly(p, dynamicTicks = FALSE)
+})
+```
+
+```{r}
+plotlyOutput('provider_summary')
+```
+
