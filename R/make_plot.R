@@ -51,8 +51,7 @@ make_plot <- function(dataframe, varname, ylabel, selsit){
       text = paste0("Date: ", Date,
                     "<br>", ylabel, ": ", ydata,
                     "<br>Sample Depth: ", sample_depth))) +
-    # geom_line(aes(colour = !!sym(varname))) +
-    geom_line(colour = "#427355") +
+    geom_line(aes(group = 1), colour = "#427355") +
     # scale_colour_manual(values = "#427355") +
     geom_point(colour = "#427355", size = 0.5) +
     # scale_y_log10() +
