@@ -531,3 +531,62 @@ plotlyOutput('nitro_plo')
 output$phos_plo <- renderPlotly(phos_plo())
 plotlyOutput('phos_plo')
 ```
+
+### Site Map Filtering
+Use these dropdowns to limit the display of stations shown on the map.
+
+```{r}
+# === filter stations by available parameters
+# create multi-select menu 
+# populated by unique values in epcdata$analyte column
+# all checked by default
+
+pickerInput(
+  inputId = "param_select",
+  label = "Select Water Quality Parameters:",
+  choices = sort(unique(epcdata$analyte)),
+  selected = sort(unique(epcdata$analyte)),
+  multiple = TRUE,
+  options = list(
+    `actions-box` = TRUE,
+    `selected-text-format` = "count > 3"
+  )
+)
+
+# on modification of multi-select,
+# filter epcdata for selected analytes
+# update map
+
+filtered_data <- reactive({
+  req(input$param_select)
+  epcdata %>% 
+    filter(analyte %in% input$param_select)
+})
+
+# reactive expression for filtered stations
+filtered_stations <- reactive({
+  req(filtered_data())
+  filtered_data() %>%
+    st_drop_geometry() %>%
+    distinct(epchc_station, latitude, longitude) %>%
+    filter(!is.na(latitude), !is.na(longitude))
+})
+
+# # observer to update map when parameter selection changes
+# observeEvent(input$param_select, {
+#   leafletProxy('map') %>%
+#     clearMarkers() %>%
+#     addCircleMarkers(
+#       data = filtered_stations(),
+#       lat = ~latitude, 
+#       lng = ~longitude,
+#       radius = 5,
+#       color = "black",
+#       fillColor = "#427355",
+#       fillOpacity = 0.7,
+#       stroke = TRUE,
+#       weight = 1,
+#       layerId = ~epchc_station,
+#       popup = ~epchc_station
+#     )
+# })
