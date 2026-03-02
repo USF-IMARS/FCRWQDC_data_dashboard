@@ -356,6 +356,10 @@ color_factor <- colorFactor(palette = colors, levels = unique(locs$bay_segment))
 # TODO: add legend
 
 createMapMarkers <- function(map_obj, station_data){
+  if(nrow(station_data) == 0){
+    return(map_obj %>% clearMarkers())
+  }
+  
   map_obj %>%
     clearMarkers() %>%
     addCircleMarkers(
@@ -379,7 +383,9 @@ createMapMarkers <- function(map_obj, station_data){
 }
 
 getFilteredStationData <- function(){
-  req(input$param_select)
+  if(is.null(input$param_select) || length(input$param_select) == 0){
+    return(locs[0, ])
+  }
   locs %>% 
     filter(epchc_station %in% filtered_stations()$epchc_station)
 }
@@ -583,8 +589,16 @@ filtered_stations <- reactive({
     filter(!is.na(latitude), !is.na(longitude))
 })
 
-# # observer to update map when parameter selection changes
-observeEvent(input$param_select, {
-  leafletProxy('map') %>%
-    createMapMarkers(getFilteredStationData())
+# observer to update map when parameter selection changes
+observe({
+  param_select <- input$param_select
+  print(paste("param_select changed:", length(param_select), "items"))
+  if(is.null(param_select) || length(param_select) == 0){
+    print("Clearing all markers")
+    leafletProxy('map') %>% clearMarkers()
+  } else {
+    print("Updating with filtered stations")
+    leafletProxy('map') %>%
+      createMapMarkers(getFilteredStationData())
+  }
 })
