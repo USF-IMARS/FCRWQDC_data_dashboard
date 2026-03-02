@@ -570,14 +570,27 @@ pickerInput(
   )
 )
 
+# date range filter
+dateRangeInput(
+  inputId = "date_range",
+  label = "Select Date Range:",
+  start = min(epcdata$datetime, na.rm = TRUE),
+  end = max(epcdata$datetime, na.rm = TRUE),
+  min = min(epcdata$datetime, na.rm = TRUE),
+  max = max(epcdata$datetime, na.rm = TRUE),
+  format = "yyyy-mm-dd",
+  separator = " to "
+)
+
 # on modification of multi-select,
 # filter epcdata for selected analytes
 # update map
 
 filtered_data <- reactive({
-  req(input$param_select)
+  req(input$param_select, input$date_range)
   epcdata %>% 
-    filter(analyte %in% input$param_select)
+    filter(analyte %in% input$param_select) %>%
+    filter(datetime >= input$date_range[1] & datetime <= input$date_range[2])
 })
 
 # reactive expression for filtered stations
@@ -589,10 +602,11 @@ filtered_stations <- reactive({
     filter(!is.na(latitude), !is.na(longitude))
 })
 
-# observer to update map when parameter selection changes
+# observer to update map when parameter selection or date range changes
 observe({
   param_select <- input$param_select
-  print(paste("param_select changed:", length(param_select), "items"))
+  date_range <- input$date_range
+  print(paste("param_select:", length(param_select), "items, date range:", date_range[1], "to", date_range[2]))
   if(is.null(param_select) || length(param_select) == 0){
     print("Clearing all markers")
     leafletProxy('map') %>% clearMarkers()
