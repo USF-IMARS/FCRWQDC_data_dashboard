@@ -42,9 +42,6 @@ source('R/data_loader.R')
 prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
 
 # === load data
-# maxyr <- 2025
-# epcdata <- load_wq_cleaned_df("data/df_cleaned.csv", maxyr)
-
 epcdata <- load_wq_cleaned_df("data/allData.csv") %>%
   filter(is.na(sample_depth) | sample_depth < 1)  # Show only surface samples
 
