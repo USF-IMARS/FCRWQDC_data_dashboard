@@ -25,16 +25,16 @@ make_plot <- function(dataframe, varname, ylabel, selsit){
   # assumes site column named "site"
   # assumes parameter column named "analyte"
   toplo <- dataframe %>%
-    filter(epchc_station == selsit) %>% 
+    filter(epchc_station == selsit) %>%
     filter(analyte == varname) %>%
     mutate(
       Date = as.Date(datetime),
       ydata = as.numeric(Value)
-    ) 
-  
+    )
+
   print(glue("plotting {nrow(toplo)} points..."))
-  
-  
+
+
   # add a fake row if df is empty to prevent failures
   if(nrow(toplo) < 1 ){  # if no data for this param
     # Create a new row to append
@@ -42,32 +42,31 @@ make_plot <- function(dataframe, varname, ylabel, selsit){
     # Append the new row to the tibble
     toplo <- bind_rows(toplo, new_row)
   }
-  
-  
+
   p1 <- ggplot(
-    toplo, 
+    toplo,
     aes(
-      x = Date, 
-      y = ydata, 
-      text = paste0("Date: ", Date, 
+      x = Date,
+      y = ydata,
+      text = paste0("Date: ", Date,
                     "<br>", ylabel, ": ", ydata,
-                    "<br>Sample Depth: ", sample_depth))) + 
+                    "<br>Sample Depth: ", sample_depth))) +
     # geom_line(aes(colour = !!sym(varname))) +
     geom_line(colour = "#427355") +
-    # scale_colour_manual(values = "#427355") + 
+    # scale_colour_manual(values = "#427355") +
     geom_point(colour = "#427355", size = 0.5) +
-    # scale_y_log10() + 
+    # scale_y_log10() +
     labs(
       title = varname,
-      y = ylabel, 
+      y = ylabel,
       x = NULL
     ) +
     pthm
     # theme(
     #   legend.title = element_blank()
     # )
-  p1 <- ggplotly(p1, dynamicTicks = T, tooltip="text")
+  p1 <- ggplotly(p1, dynamicTicks = TRUE, tooltip="text")
   # print(p1)
   return(p1)
-
 }
+
