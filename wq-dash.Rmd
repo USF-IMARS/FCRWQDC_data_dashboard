@@ -45,8 +45,7 @@ prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
 # maxyr <- 2025
 # epcdata <- load_wq_cleaned_df("data/df_cleaned.csv", maxyr)
 
-maxyr <- 2026  # should be current year + 1
-epcdata <- load_wq_cleaned_df("data/allData.csv", maxyr) %>%
+epcdata <- load_wq_cleaned_df("data/allData.csv") %>%
   filter(is.na(sample_depth) | sample_depth < 1)  # Show only surface samples
 
 # locations
