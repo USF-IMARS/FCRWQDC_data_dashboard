@@ -57,8 +57,7 @@ locs <- epcdata %>%
     n_data = n(), .groups = 'drop',
     Latitude = mean(Latitude),
     Longitude = mean(Longitude),
-    bay_segment = first(bay_segment),
-    Site = first(Site)
+    bay_segment = first(bay_segment)
   ) %>%
   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
 ```
