@@ -36,6 +36,7 @@ if(Sys.info()[1] == 'Windows')
 
 source('R/funcs.R')
 source('R/data_loader.R')
+source('R/make_plot.R')
 ```
 
 ```{r load data}
@@ -80,7 +81,6 @@ wq_plo <- reactive({
   if(is.null(selsit))  
     selsit <- locs[1, ]$epchc_station 
   
-  source('R/make_plot.R')
 
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   out <- subplot(
@@ -143,7 +143,6 @@ phys_plo <- reactive({
   if(is.null(selsit))  
     selsit <- locs[1, ]$epchc_station 
   
-  source('R/make_plot.R')
 
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   out <- subplot(
@@ -206,7 +205,6 @@ nitro_plo <- reactive({
   if(is.null(selsit))  
     selsit <- locs[1, ]$epchc_station 
   
-  source('R/make_plot.R')
 
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   station_colname <- 'epchc_station'
@@ -272,7 +270,6 @@ phos_plo <- reactive({
   if(is.null(selsit))  
     selsit <- locs[1, ]$epchc_station 
   
-  source('R/make_plot.R')
 
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   station_colname <- 'epchc_station'
