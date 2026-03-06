@@ -20,10 +20,10 @@ load_station_data <- function(fpath){
 }
 
 load_wq_cleaned_df <- function(fpath){
-  # load data from cleaned df csv file.
-  epcdata <- readr::read_csv(
-    fpath
-  ) |>
+  # load data from cleaned df parquet file.
+  library(arrow)
+  
+  epcdata <- arrow::read_parquet(fpath) |>
     dplyr::mutate(
       Site = site,
       bay_segment = source,

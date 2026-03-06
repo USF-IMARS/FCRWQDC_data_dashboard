@@ -42,7 +42,7 @@ source('R/data_loader.R')
 prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
 
 # === load data
-epcdata <- load_wq_cleaned_df("data/allData.csv") %>%
+epcdata <- load_wq_cleaned_df("data/allData.parquet") %>%
   filter(is.na(sample_depth) | sample_depth < 1)  # Show only surface samples
 
 # locations
