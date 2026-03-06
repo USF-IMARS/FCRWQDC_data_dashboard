@@ -38,12 +38,18 @@ source('R/funcs.R')
 source('R/data_loader.R')
 ```
 
-```{r load data}
+```{r load data, include=F}
+library(DBI)
+library(duckdb)
 prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
 
 # === load data
 epcdata <- load_wq_cleaned_df("data/allData.parquet") %>%
   filter(is.na(sample_depth) | sample_depth < 1)  # Show only surface samples
+
+# Initialize DuckDB connection
+db_con <- dbConnect(duckdb::duckdb(), ":memory:")
+dbExecute(db_con, "CREATE TABLE water_quality AS SELECT * FROM read_parquet('data/allData.parquet')")
 
 # locations
 # locs <- epcdata %>% 
@@ -573,16 +579,48 @@ dateRangeInput(
 # filter epcdata for selected analytes
 # update map
 
-# master reactive data object - single source of truth for filtered data
+# master reactive data object - simplified lazy loading
 master_filtered_data <- reactive({
   req(input$param_select, input$date_range)
   if(is.null(input$param_select) || length(input$param_select) == 0){
     return(NULL)
   }
   
-  epcdata %>% 
-    filter(analyte %in% input$param_select) %>%
-    filter(datetime >= input$date_range[1] & datetime <= input$date_range[2])
+  # Build query parameters
+  analyte_list <- paste0("'", paste(input$param_select, collapse = "','"), "'")
+  date_start <- input$date_range[1]
+  date_end <- input$date_range[2]
+  
+  # Execute query with transformations
+  query <- paste0("
+    SELECT 
+      source,
+      site,
+      datetime,
+      analyte,
+      value,
+      units,
+      latitude,
+      longitude,
+      sample_depth,
+      source as bay_segment,
+      analyte as Parameter,
+      units as Units,
+      sample_depth as SampleDepth,
+      datetime as SampleTimeString,
+      datetime as SampleTime,
+      value as Value,
+      value as chla,
+      source || '.' || site as epchc_station,
+      latitude as Latitude,
+      longitude as Longitude
+    FROM water_quality 
+    WHERE analyte IN (", analyte_list, ") 
+    AND datetime >= '", date_start, "' AND datetime <= '", date_end, "'
+    ORDER BY datetime
+  ")
+  
+  dbGetQuery(db_con, query)
 })
 
 # reactive expression for filtered stations - uses master data
@@ -590,8 +628,8 @@ filtered_stations <- reactive({
   req(master_filtered_data())
   master_filtered_data() %>%
     st_drop_geometry() %>%
-    distinct(epchc_station, latitude, longitude) %>%
-    filter(!is.na(latitude), !is.na(longitude))
+    distinct(epchc_station, Latitude, Longitude) %>%
+    filter(!is.na(Latitude), !is.na(Longitude))
 })
 
 # reactive expression for provider counts - uses master data
@@ -617,12 +655,10 @@ provider_counts <- reactive({
 observe({
   param_select <- input$param_select
   date_range <- input$date_range
-  print(paste("param_select:", length(param_select), "items, date range:", date_range[1], "to", date_range[2]))
+  
   if(is.null(param_select) || length(param_select) == 0){
-    print("Clearing all markers")
     leafletProxy('map') %>% clearMarkers()
   } else {
-    print("Updating with filtered stations")
     leafletProxy('map') %>%
       createMapMarkers(getFilteredStationData())
   }

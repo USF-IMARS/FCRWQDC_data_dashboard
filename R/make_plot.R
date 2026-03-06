@@ -32,9 +32,6 @@ make_plot <- function(dataframe, varname, ylabel, selsit){
       ydata = as.numeric(Value)
     )
 
-  print(glue("plotting {nrow(toplo)} points..."))
-
-
   # add a fake row if df is empty to prevent failures
   if(nrow(toplo) < 1 ){  # if no data for this param
     # Create a new row to append

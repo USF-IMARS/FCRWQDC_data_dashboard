@@ -1,5 +1,5 @@
 # file too large for github 
-data/allData.csv
+data/allData.parquet
 
 # Rstudio defaults
 .Rproj.user
