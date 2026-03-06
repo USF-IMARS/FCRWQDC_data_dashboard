@@ -623,6 +623,10 @@ observe({
     leafletProxy('map') %>%
       createMapMarkers(getFilteredStationData())
   }
+  
+  # Explicit cleanup
+  rm(list = ls(envir = .GlobalEnv)[grepl("^tmp_", ls(envir = .GlobalEnv))])
+  gc(verbose = FALSE)
 })
 
 ```
