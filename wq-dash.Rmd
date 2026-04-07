@@ -43,8 +43,8 @@ source('R/make_plot.R')
 prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
 
 # === load data
-epcdata <- load_wq_cleaned_df("data/allData.csv") %>%
-  filter(is.na(sample_depth) | sample_depth < 1)  # Show only surface samples
+epcdata <- load_wq_cleaned_df(here::here("data/dashboardDataSEACAR.csv")) %>%
+  filter(is.na(`Sample.Depth`) | `Sample.Depth` < 1)  # Show only surface samples
 
 # locations
 # locs <- epcdata %>% 
@@ -84,7 +84,7 @@ wq_plo <- reactive({
 
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   out <- subplot(
-    make_plot(epcdata, 'Chlorophyll a, Corrected for Pheophytin', 'Chlor-a \n ug/L', selsit),
+    make_plot(epcdata, 'Chlorophyll a', 'Chlor-a \n ug/L', selsit),
     make_plot(epcdata, 'Turbidity', 'Turbidity \n NTU', selsit),
     make_plot(epcdata, 'Dissolved Oxygen', 'Dissolved Oxygen', selsit),
 
@@ -209,10 +209,10 @@ nitro_plo <- reactive({
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   station_colname <- 'epchc_station'
   out <- subplot(
-    make_plot(epcdata, 'Ammonium, Filtered (NH4)', 'Ammonium \n mg/L', selsit),
+    make_plot(epcdata, 'Ammonium', 'Ammonium \n mg/L', selsit),
     # make_plot(epcdata, 'NO2+3, Filtered', 'mg/L', selsit),
-    # make_plot(epcdata, 'Nitrite (NO2)', 'mg/L', selsit),
-    # make_plot(epcdata, 'Nitrate (NO3)', 'mg/L', selsit),
+    # make_plot(epcdata, 'Nitrite', 'mg/L', selsit),
+    # make_plot(epcdata, 'Nitrate', 'mg/L', selsit),
     make_plot(epcdata, 'Total Nitrogen', 'Nitrogen \n mg N/L', selsit),
     make_plot(epcdata, 'Total Kjeldahl Nitrogen', 'Kjeldahl N mg/L', selsit),
     # nrows must equal the number of make_plot() calls above
@@ -274,7 +274,7 @@ phos_plo <- reactive({
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   station_colname <- 'epchc_station'
   out <- subplot(
-    make_plot(epcdata, 'Phosphate, Filtered (PO4)', 'Phosphate \n mg/L', selsit),
+    make_plot(epcdata, 'Orthophosphate', 'Phosphate \n mg/L', selsit),
     make_plot(epcdata, 'Total Phosphorus', 'Phosphorus \n mg/L', selsit),
     # nrows must equal the number of make_plot() calls above
     nrows = 2,
@@ -447,40 +447,6 @@ Unified Water Quality Database.
 Station locations are shown in colors which signify the data provider at that location.
 The points on the map are sized proportionally to the amount of data points at that location. 
 
-**Data are collected by the following data providers:**
-
-* NOAA Atlantic Oceanographic and Meteorological Laboratory (AOML - purple)
-* FIU Southeast Environmental Research Center (FIU - orange)
-* MDC Department of Environmental Resource Management (DERM - red)
-* Florida Department of Environmental Protection (DEP - light brown)
-* Broward County (BROWARD - green)
-* City of Miami Beach (Miami Beach - tan)
-* Biscayne Bay Aquatic Preserve (BBAP - blue)
-* Palm Beach County (PBC - dark brown)
-
-The following water quality parameters are collected and shown as time series. Note that not all
-data providers collect all listed parameters.
-
-Nitrogen
-
-* Total Nitrogen (TN)
-* Nitrite (NO2)
-* Nitrate (NO3)
-* Nitrate – Nitrite (N)
-* Ammonium (NH4)
-* Total Kjeldahl Nitrogen (TKN)
-
-Phosphorus
-
-* Total Phosphorus (TP)
-* Orthophosphates (OPO4)
-
-Water Clarity
-
-* Chlorophyll-a
-* Turbidity
-* Silicates
-
 **How to use this tool:**
 
 Begin by selecting a sampling location on the map. To see station locations, you can move
@@ -539,14 +505,15 @@ Use these dropdowns to limit the display of stations shown on the map.
 ```{r}
 # === filter stations by available parameters
 # create multi-select menu 
-# populated by unique values in epcdata$analyte column
+# populated by unique values in epcdata$`Parameter` column
 # all checked by default
 
 pickerInput(
+  
   inputId = "param_select",
   label = "Select Water Quality Parameters:",
-  choices = sort(unique(epcdata$analyte)),
-  selected = sort(unique(epcdata$analyte)),
+  choices = sort(unique(epcdata$`Parameter`)),
+  selected = sort(unique(epcdata$`Parameter`)),
   multiple = TRUE,
   options = list(
     `actions-box` = TRUE,
@@ -578,7 +545,7 @@ master_filtered_data <- reactive({
   }
   
   epcdata %>% 
-    filter(analyte %in% input$param_select) %>%
+    filter(`Parameter` %in% input$param_select) %>%
     filter(datetime >= input$date_range[1] & datetime <= input$date_range[2])
 })
 
@@ -587,8 +554,8 @@ filtered_stations <- reactive({
   req(master_filtered_data())
   master_filtered_data() %>%
     st_drop_geometry() %>%
-    distinct(epchc_station, latitude, longitude) %>%
-    filter(!is.na(latitude), !is.na(longitude))
+    distinct(epchc_station, Latitude, Longitude) %>%
+    filter(!is.na(Latitude), !is.na(Longitude))
 })
 
 # reactive expression for provider counts - uses master data

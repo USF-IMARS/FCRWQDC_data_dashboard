@@ -22,11 +22,11 @@ make_plot <- function(dataframe, varname, ylabel, selsit){
   # varname <- 'chla'  # str: column name of variable to plot
   # ylabel <- 'Concentration (ug/L)'  # str: label for y axis
   # selsit : str : selected site
-  # assumes site column named "site"
-  # assumes parameter column named "analyte"
+  # assumes site column named "Site"
+  # assumes parameter column named "Parameter"
   toplo <- dataframe %>%
     filter(epchc_station == selsit) %>%
-    filter(analyte == varname) %>%
+    filter(`Parameter` == varname) %>%
     mutate(
       Date = as.Date(datetime),
       ydata = as.numeric(Value)
@@ -50,7 +50,7 @@ make_plot <- function(dataframe, varname, ylabel, selsit){
       y = ydata,
       text = paste0("Date: ", Date,
                     "<br>", ylabel, ": ", ydata,
-                    "<br>Sample Depth: ", sample_depth))) +
+                    "<br>Sample Depth: ", `Sample.Depth`))) +
     geom_line(aes(group = 1), colour = "#427355") +
     # scale_colour_manual(values = "#427355") +
     geom_point(colour = "#427355", size = 0.5) +
