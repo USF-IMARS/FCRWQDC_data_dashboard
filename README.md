@@ -11,7 +11,8 @@ This file is not tracked using git due to the large size of the file.
 source("./run_tests.R")
 ```
 
-# Upstream resources
+
+# Attributions
 This dashboard was based on [TBEP's wq-dashboard](https://github.com/tbep-tech/wq-dash).
 Info below is held over from that repo.
 
@@ -23,10 +24,10 @@ Materials for TBEP water quality dashboard.
 [Shiny](http://shiny.tbep.org/wq-dash/)
 
 
--------------
+---------------------------------------------------
 
-Data shown here has undergone steps of ingestion, analysis, and cleaning.
-The latest version of data cleaning is documented [here](https://github.com/USF-IMARS/WIN_data_ingest).
+Data shown here has undergone multiple iterations of ingestion, analysis, and cleaning.
+Some data cleaning is documented in [USF-IMaRS/WIN_data_ingest](https://github.com/USF-IMARS/WIN_data_ingest).
 
 Older analyses include:
 
