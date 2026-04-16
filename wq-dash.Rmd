@@ -37,6 +37,7 @@ if(Sys.info()[1] == 'Windows')
 source('R/funcs.R')
 source('R/data_loader.R')
 source('R/make_plot.R')
+source('listOfStationFiles.R')
 ```
 
 ```{r load data}
@@ -595,12 +596,12 @@ master_filtered_data <- reactive({
   filtered_stations_data <- stations_metadata %>% mutate(
     nRowsSelected = 0
   )
-  print(filtered_stations_data)
+  # print(filtered_stations_data)
 
   for(param in input$param_select) {
     mappedParam <- param_mapping_flipped[[param]]
-    print(paste('adding stations with', mappedParam, '...'))
-    print(filtered_stations_data[[mappedParam]])
+    # print(paste('adding stations with', mappedParam, '...'))
+    # print(filtered_stations_data[[mappedParam]])
     
     filtered_stations_data <- filtered_stations_data %>%
       mutate(
@@ -610,7 +611,7 @@ master_filtered_data <- reactive({
 
   # drop any stations with nRowsSelected <= 0
   filtered_stations_data <- filtered_stations_data %>% filter(nRowsSelected > 0)
-  print(filtered_stations_data$nRowsSelected)
+  # print(filtered_stations_data$nRowsSelected)
 
   return(filtered_stations_data)
 })

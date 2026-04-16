@@ -14,6 +14,15 @@ cp ../FCRWQDC-SEACAR-analysis/data/exports/dashboardStations.csv ./data/.
 cp -R ../FCRWQDC-SEACAR-analysis/data/exports/stationData ./data/.
 ```
 
+The files must be referenced in R code in order for the RStudio shinyapps pub interface to pick them up.
+To accomplish this run the following after putting the stationData files in place:
+
+```bash
+printf '# Station data files - referenced here so shinyapps.io bundles them\nstationFiles <- c(\n' > listOfStationFiles.R
+ls data/stationData/ | awk 'NR>1{print prev","} {prev="  \"data/stationData/"$0"\""} END{print prev}' >> listOfStationFiles.R
+printf ')\n' >> listOfStationFiles.R
+```
+
 
 # Testing
 ```r
