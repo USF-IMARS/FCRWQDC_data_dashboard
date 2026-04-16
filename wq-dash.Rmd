@@ -68,6 +68,12 @@ param_mapping <- list(
   "Nitrate (NO3)" = "Nitrate",
   "Nitrite (NO2)" = "Nitrite"
 )
+param_mapping_flipped <- list()
+# swap keys and values for the param_mapping
+for(key in names(param_mapping)) {
+  param_mapping_flipped[[param_mapping[[key]]]] <- key
+}
+
 
 # Get available parameters from dashboardStations columns
 available_params <- names(param_mapping)[names(param_mapping) %in% names(stations_metadata)]
@@ -430,14 +436,6 @@ createMapMarkers <- function(map_obj, station_data){
       )
 }
 
-getFilteredStationData <- function(){
-  if(is.null(input$param_select) || length(input$param_select) == 0){
-    return(locs[0, ])
-  }
-  locs %>% 
-    filter(epchc_station %in% filtered_stations()$epchc_station)
-}
-
 bsmap <- mapview(locs, homebutton = F, legend = F) %>% 
   .@map %>% 
   leafem::removeMouseCoordinates() %>% 
@@ -572,7 +570,6 @@ Use these dropdowns to limit the display of stations shown on the map.
 # all checked by default
 
 pickerInput(
-  
   inputId = "param_select",
   label = "Select Water Quality Parameters:",
   choices = sort(dashboard_param_names),
@@ -583,19 +580,6 @@ pickerInput(
     `selected-text-format` = "count > 3"
   )
 )
-
-# TODO: re-implement something like this as a select for "has data in last 5 years"
-# # date range filter
-# dateRangeInput(
-#   inputId = "date_range",
-#   label = "Select Date Range:",
-#   start = min(epcdata$datetime, na.rm = TRUE),
-#   end = max(epcdata$datetime, na.rm = TRUE),
-#   min = min(epcdata$datetime, na.rm = TRUE),
-#   max = max(epcdata$datetime, na.rm = TRUE),
-#   format = "yyyy-mm-dd",
-#   separator = " to "
-# )
 
 # on modification of multi-select,
 # 1. filter stations for selected parameters
@@ -608,31 +592,27 @@ master_filtered_data <- reactive({
     return(NULL)
   }
   
-  # Get dashboardStations column names for selected parameters
-  selected_columns <- c("epchc_station", "Latitude", "Longitude", "ProgramName", "ProgramLocationID")
+  filtered_stations_data <- stations_metadata %>% mutate(
+    nRowsSelected = 0
+  )
+  print(filtered_stations_data)
+
   for(param in input$param_select) {
-    # Find the dashboardStations column name for this parameter
-    column_name <- names(param_mapping)[param_mapping == param]
-    if(length(column_name) > 0 && column_name %in% names(stations_metadata)) {
-      selected_columns <- c(selected_columns, column_name)
-    }
+    mappedParam <- param_mapping_flipped[[param]]
+    print(paste('adding stations with', mappedParam, '...'))
+    print(filtered_stations_data[[mappedParam]])
+    
+    filtered_stations_data <- filtered_stations_data %>%
+      mutate(
+        nRowsSelected = nRowsSelected + .data[[mappedParam]]
+      )
   }
-  
-  # Filter stations to only include those with data for selected parameters
-  filtered_stations_data <- stations_metadata[, selected_columns, drop = FALSE]
 
-  # drop any parameters with number of rows <= 0
-  filtered_stations_data <- filtered_stations_data[, colSums(!is.na(filtered_stations_data)) > 0]
-  
+  # drop any stations with nRowsSelected <= 0
+  filtered_stations_data <- filtered_stations_data %>% filter(nRowsSelected > 0)
+  print(filtered_stations_data$nRowsSelected)
+
   return(filtered_stations_data)
-})
-
-# reactive expression for filtered stations - uses master data
-filtered_stations <- reactive({
-  req(master_filtered_data())
-  master_filtered_data() %>%
-    filter(!is.na(Latitude), !is.na(Longitude)) %>%
-    select(epchc_station, Latitude, Longitude)
 })
 
 # reactive expression for provider counts - uses master data
@@ -664,7 +644,7 @@ observe({
   } else {
     print("Updating with filtered stations")
     leafletProxy('map') %>%
-      createMapMarkers(getFilteredStationData())
+      createMapMarkers(master_filtered_data())
   }
   
   # Explicit cleanup
