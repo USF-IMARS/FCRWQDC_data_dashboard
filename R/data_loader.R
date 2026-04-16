@@ -135,3 +135,27 @@ load_station_data <- function(program_name, location_id) {
   # Return the processed station data
   return(station_data)
 }
+
+#' Load Dashboard Stations Data
+#'
+#' This function loads station metadata from the dashboardStations CSV file and processes
+#' it for use in the dashboard map and filtering. The file contains counts of data points
+#' for each parameter at each station.
+#'
+#' @param fpath Character string specifying the file path to the dashboardStations CSV file.
+#'              Typically uses "data/dashboardStations.csv" for the dashboard.
+#'
+#' @return A data frame containing processed station metadata with parameter counts
+#'
+#' @export
+load_dashboard_stations <- function(fpath) {
+  # Load the dashboard stations data
+  stations_data <- readr::read_csv(fpath) %>%
+    dplyr::mutate(
+      epchc_station = paste(ProgramName, ProgramLocationID, sep="."),
+      Latitude = OriginalLatitude,
+      Longitude = OriginalLongitude
+    )
+  
+  return(stations_data)
+}

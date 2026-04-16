@@ -42,25 +42,36 @@ source('R/make_plot.R')
 ```{r load data}
 prj <- '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
 
-# === load data
-epcdata <- load_wq_cleaned_df(here::here("data/dashboardDataSEACAR.csv")) %>%
-  filter(is.na(`Sample.Depth`) | `Sample.Depth` < 1)  # Show only surface samples
+# === load station metadata from dashboardStations
+stations_metadata <- load_dashboard_stations(here::here("data/dashboardStations.csv"))
 
-# locations
-# locs <- epcdata %>% 
-#   select(epchc_station, Longitude, Latitude, bay_segment, Site) %>% 
-#   unique %>% 
-#   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
-
-locs <- epcdata %>%
-  group_by(epchc_station) %>%
-  summarise(
-    n_data = n(), .groups = 'drop',
-    Latitude = mean(Latitude),
-    Longitude = mean(Longitude),
-    bay_segment = first(bay_segment)
-  ) %>%
+# Create locations dataframe for mapping
+locs <- stations_metadata %>%
   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
+
+# === parameter mapping from dashboardStations columns to dashboard parameter names
+# Map dashboardStations column names to dashboard parameter names
+param_mapping <- list(
+  "Ammonium (NH4)" = "Ammonium",
+  "Chlorophyll a, Corrected for Pheophytin" = "Chlorophyll a",
+  "NO2+3, Filtered" = "Nitrate+Nitrite",
+  "Phosphate, Filtered (PO4)" = "Orthophosphate",
+  "Salinity" = "Salinity",
+  "Water Temperature" = "Water Temperature",
+  "pH" = "pH",
+  "Dissolved Oxygen" = "Dissolved Oxygen",
+  "Total Ammonia (N)" = "Ammonia (N)",
+  "Total Kjeldahl Nitrogen" = "Total Kjeldahl Nitrogen",
+  "Total Nitrogen" = "Total Nitrogen",
+  "Total Phosphorus" = "Total Phosphorus",
+  "Turbidity" = "Turbidity",
+  "Nitrate (NO3)" = "Nitrate",
+  "Nitrite (NO2)" = "Nitrite"
+)
+
+# Get available parameters from dashboardStations columns
+available_params <- names(param_mapping)[names(param_mapping) %in% names(stations_metadata)]
+dashboard_param_names <- unlist(param_mapping[available_params])
 ```
 
 ```{r create download button}
@@ -92,8 +103,8 @@ station_data <- reactive({
     # Load station-specific data
     load_station_data(program_name, location_id)
   } else {
-    # Fallback to filtered main data if parsing fails
-    epcdata %>% filter(epchc_station == selsit)
+    # Show notification with error message
+    showNotification("Invalid station ID format", type = "error")
   }
 })
 
@@ -360,7 +371,7 @@ phos_plo <- reactive({
 
 ```{r map}
 # create colormap
-locs$bay_segment <- factor(locs$bay_segment)
+locs$bay_segment <- factor(locs$ProgramName)
 num_colors <- length(unique(locs$bay_segment))
 # colors <- brewer.pal(n = num_colors, name = "Paired")
 # colors <- c("#7FC97F", "#BEAED4", "#FFC088", "#FFFF99", "#3811FF", "#F00270","#BF5B17", "#660000")]
@@ -377,12 +388,32 @@ createMapMarkers <- function(map_obj, station_data){
     return(map_obj %>% clearMarkers())
   }
   
+  # Add bay_segment column from locs for coloring
+  station_data$bay_segment <- factor(station_data$ProgramName)
+
+  # calculate a radius for each marker based on endDate - startDate
+  station_data$radius <- as.numeric(station_data$endDate - station_data$startDate)
+  
+  # Manually scale radius to range 5-20
+  if(length(unique(station_data$radius)) > 1) {
+    min_val <- min(station_data$radius, na.rm = TRUE)
+    max_val <- max(station_data$radius, na.rm = TRUE)
+    if(max_val > min_val) {
+      station_data$scaled_radius <- 5 + (station_data$radius - min_val) * (15 / (max_val - min_val))
+    } else {
+      station_data$scaled_radius <- 10  # Default middle value
+    }
+  } else {
+    station_data$scaled_radius <- 10  # Default value
+  }
+  
+  
   map_obj %>%
     clearMarkers() %>%
     addCircleMarkers(
       stroke = F,
       fillOpacity = 0.5,
-      radius = ~scale(n_data, center = min(n_data), scale = max(n_data) - min(n_data)) * 20 + 4,
+      radius = ~scaled_radius,
       data = station_data,
       layerId = ~epchc_station,
       color = ~color_factor(bay_segment),
@@ -448,9 +479,8 @@ output$wqdwntab <- downloadHandler(
     # inputs
     seldl <- input$seldl
     
-    todl <- epcdata %>% 
-      filter(epchc_station %in% as.numeric(seldl)) %>% 
-      select(bay_segment, epchc_station, SampleTime, yr, mo, Latitude, Longitude, chla)
+    
+    todl <- station_data()
     
     write.csv(todl, file, quote = T, row.names = F)
     
@@ -538,15 +568,15 @@ Use these dropdowns to limit the display of stations shown on the map.
 ```{r}
 # === filter stations by available parameters
 # create multi-select menu 
-# populated by unique values in epcdata$`Parameter` column
+# populated by available parameters from dashboardStations
 # all checked by default
 
 pickerInput(
   
   inputId = "param_select",
   label = "Select Water Quality Parameters:",
-  choices = sort(unique(epcdata$`Parameter`)),
-  selected = sort(unique(epcdata$`Parameter`)),
+  choices = sort(dashboard_param_names),
+  selected = sort(dashboard_param_names),
   multiple = TRUE,
   options = list(
     `actions-box` = TRUE,
@@ -554,41 +584,55 @@ pickerInput(
   )
 )
 
-# date range filter
-dateRangeInput(
-  inputId = "date_range",
-  label = "Select Date Range:",
-  start = min(epcdata$datetime, na.rm = TRUE),
-  end = max(epcdata$datetime, na.rm = TRUE),
-  min = min(epcdata$datetime, na.rm = TRUE),
-  max = max(epcdata$datetime, na.rm = TRUE),
-  format = "yyyy-mm-dd",
-  separator = " to "
-)
+# TODO: re-implement something like this as a select for "has data in last 5 years"
+# # date range filter
+# dateRangeInput(
+#   inputId = "date_range",
+#   label = "Select Date Range:",
+#   start = min(epcdata$datetime, na.rm = TRUE),
+#   end = max(epcdata$datetime, na.rm = TRUE),
+#   min = min(epcdata$datetime, na.rm = TRUE),
+#   max = max(epcdata$datetime, na.rm = TRUE),
+#   format = "yyyy-mm-dd",
+#   separator = " to "
+# )
 
 # on modification of multi-select,
-# filter epcdata for selected analytes
-# update map
+# 1. filter stations for selected parameters
+# 2. update map
 
-# master reactive data object - single source of truth for filtered data
+# master reactive data object - filters stations based on selected parameters
 master_filtered_data <- reactive({
-  req(input$param_select, input$date_range)
+  req(input$param_select)
   if(is.null(input$param_select) || length(input$param_select) == 0){
     return(NULL)
   }
   
-  epcdata %>% 
-    filter(`Parameter` %in% input$param_select) %>%
-    filter(datetime >= input$date_range[1] & datetime <= input$date_range[2])
+  # Get dashboardStations column names for selected parameters
+  selected_columns <- c("epchc_station", "Latitude", "Longitude", "ProgramName", "ProgramLocationID")
+  for(param in input$param_select) {
+    # Find the dashboardStations column name for this parameter
+    column_name <- names(param_mapping)[param_mapping == param]
+    if(length(column_name) > 0 && column_name %in% names(stations_metadata)) {
+      selected_columns <- c(selected_columns, column_name)
+    }
+  }
+  
+  # Filter stations to only include those with data for selected parameters
+  filtered_stations_data <- stations_metadata[, selected_columns, drop = FALSE]
+
+  # drop any parameters with number of rows <= 0
+  filtered_stations_data <- filtered_stations_data[, colSums(!is.na(filtered_stations_data)) > 0]
+  
+  return(filtered_stations_data)
 })
 
 # reactive expression for filtered stations - uses master data
 filtered_stations <- reactive({
   req(master_filtered_data())
   master_filtered_data() %>%
-    st_drop_geometry() %>%
-    distinct(epchc_station, Latitude, Longitude) %>%
-    filter(!is.na(Latitude), !is.na(Longitude))
+    filter(!is.na(Latitude), !is.na(Longitude)) %>%
+    select(epchc_station, Latitude, Longitude)
 })
 
 # reactive expression for provider counts - uses master data
@@ -599,7 +643,7 @@ provider_counts <- reactive({
   }
   
   counts <- master_filtered_data() %>%
-    group_by(bay_segment) %>%
+    group_by(ProgramName) %>%
     summarise(n = n(), .groups = 'drop') %>%
     arrange(desc(n))
   
@@ -607,14 +651,13 @@ provider_counts <- reactive({
     return("No data matches selection")
   }
   
-  paste(counts$bay_segment, ":", counts$n, collapse = "\n\n")
+  paste(counts$ProgramName, ":", counts$n, collapse = "\n\n")
 })
 
-# observer to update map when parameter selection or date range changes
+# observer to update map when parameter selection changes
 observe({
   param_select <- input$param_select
-  date_range <- input$date_range
-  print(paste("param_select:", length(param_select), "items, date range:", date_range[1], "to", date_range[2]))
+  print(paste("param_select:", length(param_select), "items"))
   if(is.null(param_select) || length(param_select) == 0){
     print("Clearing all markers")
     leafletProxy('map') %>% clearMarkers()
@@ -643,7 +686,7 @@ output$provider_summary <- renderPlotly({
   }
   
   counts <- master_filtered_data() %>%
-    group_by(bay_segment) %>%
+    group_by(ProgramName) %>%
     summarise(n = n(), .groups = 'drop') %>%
     arrange(desc(n))
   
@@ -653,7 +696,7 @@ output$provider_summary <- renderPlotly({
                     size = 6, hjust = 0.5, vjust = 0.5))
   }
   
-  p <- ggplot(counts, aes(x = reorder(bay_segment, n), y = n, fill = bay_segment)) +
+  p <- ggplot(counts, aes(x = reorder(ProgramName, n), y = n, fill = ProgramName)) +
     geom_col() +
     coord_flip() +
     labs(
