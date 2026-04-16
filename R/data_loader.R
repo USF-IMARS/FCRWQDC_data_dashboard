@@ -4,22 +4,23 @@ load_wq_cleaned_df <- function(fpath){
     fpath
   ) |>
     dplyr::mutate(
-      Site = Site,
-      bay_segment = Source,
-      Source = Source,
-      Parameter = Parameter,
-      Units = Units,
-      Sample.Depth = `Sample.Depth`,
-      SampleTimeString = as.character(datetime),
-      SampleTime = datetime,
-      yr = year(datetime),
-      mo = month(datetime),
-      d  = day(datetime),
-      Value = Value,
+      Site = ProgramLocationID,
+      bay_segment = ProgramName,
+      Source = ProgramName,
+      Parameter = ParameterName,
+      Units = ParameterUnits,
+      Sample.Depth = `ActivityDepth_m`,
+      SampleTimeString = as.character(SampleDate),
+      datetime = as.Date(SampleDate),
+      SampleTime = SampleDate,
+      yr = year(SampleDate),
+      mo = month(SampleDate),
+      d  = day(SampleDate),
+      Value = ResultValue,
       chla = Value,  # TODO: fix this variable name
       epchc_station = paste(Source, Site, sep="."),
-      Latitude = Latitude,
-      Longitude = Longitude
+      Latitude = OriginalLatitude,
+      Longitude = OriginalLongitude
     ) |>
     tidyr::drop_na(
       Latitude, Longitude,

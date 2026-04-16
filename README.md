@@ -6,8 +6,14 @@ Data shown is ingested from multiple providers through processes documented in h
 Older versions of this file were prepared with https://github.com/USF-IMARS/FCRWQDC_data_ingest.
 
 
-For this application to work the `dashboardDataSEACAR.csv` file produced by the ingestion and published in [this gdrive folder](https://drive.google.com/drive/folders/1QMUpJOwfAMG9dB_fYT0Yva3IBVRg27fr) must be placed in the `./data/` directory.
-This file is not tracked using git due to the large size of the file.
+For this application to work the files produced by the upstream data processing must be placed in the `./data/` directory.
+These files are not tracked using git due to the large size of the files.
+
+```bash
+cp ../FCRWQDC-SEACAR-analysis/data/exports/dashboardStations.csv ./data/.
+cp -R ../FCRWQDC-SEACAR-analysis/data/exports/stationData ./data/.
+```
+
 
 # Testing
 ```r
