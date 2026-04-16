@@ -72,21 +72,48 @@ downloadButtonRmd <- function (outputId, label = "Download", class = NULL, ...) 
 ```
 
 ```{r reactives}
-# === selected site plots
-wq_plo <- reactive({
-  # selected_site
+# === Station data loading
+# Load station-specific data when a station is selected
+station_data <- reactive({
+  # Get selected station ID
   selsit <- input$map_marker_click$id
-
-  # select 1st station if station not selected
+  
+  # Use first station if none selected
   if(is.null(selsit))  
     selsit <- locs[1, ]$epchc_station 
   
+  # Parse the station ID to extract program name and location ID
+  # Format: "ProgramName.LocationID"
+  station_parts <- strsplit(selsit, "\\.")[[1]]
+  if(length(station_parts) >= 2) {
+    program_name <- station_parts[1]
+    location_id <- station_parts[2]
+    
+    # Load station-specific data
+    load_station_data(program_name, location_id)
+  } else {
+    # Fallback to filtered main data if parsing fails
+    epcdata %>% filter(epchc_station == selsit)
+  }
+})
 
+# === selected site plots
+wq_plo <- reactive({
+  # Get selected station ID
+  selsit <- input$map_marker_click$id
+
+  # Use first station if none selected
+  if(is.null(selsit))  
+    selsit <- locs[1, ]$epchc_station 
+
+  # Get station-specific data
+  current_station_data <- station_data()
+  
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   out <- subplot(
-    make_plot(epcdata, 'Chlorophyll a', 'Chlor-a \n ug/L', selsit),
-    make_plot(epcdata, 'Turbidity', 'Turbidity \n NTU', selsit),
-    make_plot(epcdata, 'Dissolved Oxygen', 'Dissolved Oxygen', selsit),
+    make_plot(current_station_data, 'Chlorophyll a', 'Chlor-a \n ug/L', selsit),
+    make_plot(current_station_data, 'Turbidity', 'Turbidity \n NTU', selsit),
+    make_plot(current_station_data, 'Dissolved Oxygen', 'Dissolved Oxygen', selsit),
 
     # nrows must equal the number of make_plot() calls above
     nrows = 3,
@@ -136,19 +163,21 @@ wq_plo <- reactive({
   return(out)
 })
 phys_plo <- reactive({
-  # selected_site
+  # Get selected station ID
   selsit <- input$map_marker_click$id
 
-  # select 1st station if station not selected
+  # Use first station if none selected
   if(is.null(selsit))  
     selsit <- locs[1, ]$epchc_station 
-  
+
+  # Get station-specific data
+  current_station_data <- station_data()
 
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   out <- subplot(
-    make_plot(epcdata, 'Salinity', 'Salinity', selsit),
-    make_plot(epcdata, 'Water Temperature', 'Water Temperature \n deg C', selsit),
-    make_plot(epcdata, 'pH', 'pH', selsit),
+    make_plot(current_station_data, 'Salinity', 'Salinity', selsit),
+    make_plot(current_station_data, 'Water Temperature', 'Water Temperature \n deg C', selsit),
+    make_plot(current_station_data, 'pH', 'pH', selsit),
 
     # nrows must equal the number of make_plot() calls above
     nrows = 3,
@@ -198,23 +227,25 @@ phys_plo <- reactive({
   return(out)
 })
 nitro_plo <- reactive({
-  # selected_site
+  # Get selected station ID
   selsit <- input$map_marker_click$id
 
-  # select 1st station if station not selected
+  # Use first station if none selected
   if(is.null(selsit))  
     selsit <- locs[1, ]$epchc_station 
-  
+
+  # Get station-specific data
+  current_station_data <- station_data()
 
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   station_colname <- 'epchc_station'
   out <- subplot(
-    make_plot(epcdata, 'Ammonium', 'Ammonium \n mg/L', selsit),
-    # make_plot(epcdata, 'NO2+3, Filtered', 'mg/L', selsit),
-    # make_plot(epcdata, 'Nitrite', 'mg/L', selsit),
-    # make_plot(epcdata, 'Nitrate', 'mg/L', selsit),
-    make_plot(epcdata, 'Total Nitrogen', 'Nitrogen \n mg N/L', selsit),
-    make_plot(epcdata, 'Total Kjeldahl Nitrogen', 'Kjeldahl N mg/L', selsit),
+    make_plot(current_station_data, 'Ammonium', 'Ammonium \n mg/L', selsit),
+    # make_plot(current_station_data, 'NO2+3, Filtered', 'mg/L', selsit),
+    # make_plot(current_station_data, 'Nitrite', 'mg/L', selsit),
+    # make_plot(current_station_data, 'Nitrate', 'mg/L', selsit),
+    make_plot(current_station_data, 'Total Nitrogen', 'Nitrogen \n mg N/L', selsit),
+    make_plot(current_station_data, 'Total Kjeldahl Nitrogen', 'Kjeldahl N mg/L', selsit),
     # nrows must equal the number of make_plot() calls above
     nrows = 3,
     shareX = T, shareY = F, titleX = T, titleY = T, which_layout = 1
@@ -263,19 +294,21 @@ nitro_plo <- reactive({
   return(out)
 })
 phos_plo <- reactive({
-  # selected_site
+  # Get selected station ID
   selsit <- input$map_marker_click$id
 
-  # select 1st station if station not selected
+  # Use first station if none selected
   if(is.null(selsit))  
     selsit <- locs[1, ]$epchc_station 
-  
+
+  # Get station-specific data
+  current_station_data <- station_data()
 
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   station_colname <- 'epchc_station'
   out <- subplot(
-    make_plot(epcdata, 'Orthophosphate', 'Phosphate \n mg/L', selsit),
-    make_plot(epcdata, 'Total Phosphorus', 'Phosphorus \n mg/L', selsit),
+    make_plot(current_station_data, 'Orthophosphate', 'Phosphate \n mg/L', selsit),
+    make_plot(current_station_data, 'Total Phosphorus', 'Phosphorus \n mg/L', selsit),
     # nrows must equal the number of make_plot() calls above
     nrows = 2,
     shareX = T, shareY = F, titleX = T, titleY = T, which_layout = 1
