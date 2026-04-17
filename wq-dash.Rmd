@@ -144,9 +144,9 @@ wq_plo <- reactive({
   
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   out <- subplot(
-    make_plot(current_station_data, 'Chlorophyll a', 'Chlor-a \n ug/L', selsit),
-    make_plot(current_station_data, 'Turbidity', 'Turbidity \n NTU', selsit),
-    make_plot(current_station_data, 'Dissolved Oxygen', 'Dissolved Oxygen', selsit),
+    make_plot(current_station_data, 'Chlorophyll a', 'Chlor-a \n ug/L'),
+    make_plot(current_station_data, 'Turbidity', 'Turbidity \n NTU'),
+    make_plot(current_station_data, 'Dissolved Oxygen', 'Dissolved Oxygen'),
 
     # nrows must equal the number of make_plot() calls above
     nrows = 3,
@@ -523,13 +523,13 @@ pickerInput(
 # 2. update map
 
 # master reactive data object - filters stations based on selected parameters
-master_filtered_data <- reactive({
+stationsMetadata <- reactive({
   req(input$param_select)
   if(is.null(input$param_select) || length(input$param_select) == 0){
     return(NULL)
   }
 
-  print("=== DEBUG: master_filtered_data ===")
+  print("=== DEBUG: stationsMetadata ===")
   print(paste("Selected parameters:", paste(input$param_select, collapse=", ")))
 
   filtered_stations_data <- stations_metadata %>% mutate(
@@ -541,7 +541,7 @@ master_filtered_data <- reactive({
     mappedParam <- param_mapping_flipped[[param]]
     print(paste('Parameter:', param, '-> Column:', mappedParam))
     print(paste('Sample values for', mappedParam, ':', head(filtered_stations_data[[mappedParam]], 5)))
-    print(paste('Stations with >0 in', mappedParam, ':', sum(filtered_stations_data[[mappedParam]] > 0)))
+    print(paste('Stations with samples>0 in', mappedParam, ':', sum(filtered_stations_data[[mappedParam]] > 0)))
 
     filtered_stations_data <- filtered_stations_data %>%
       mutate(
@@ -563,7 +563,7 @@ master_filtered_data <- reactive({
   return(filtered_stations_data)
 })
 
-# observer to update map when master_filtered_data changes
+# observer to update map when stationsMetadata changes
 observe({
   param_select <- input$param_select
   print(paste("param_select:", length(param_select), "items"))
@@ -574,7 +574,7 @@ observe({
   } else {
     print("Updating with filtered stations")
     leafletProxy('map') %>%
-      createMapMarkers(master_filtered_data())
+      createMapMarkers(stationsMetadata())
   }
 
   # Explicit cleanup
@@ -588,14 +588,14 @@ observe({
 ```{r}
 # bar chart output for provider counts
 output$provider_summary <- renderPlotly({
-  req(master_filtered_data())
-  if(is.null(master_filtered_data())){
+  req(stationsMetadata())
+  if(is.null(stationsMetadata())){
     return(ggplot() + theme_void() + 
             annotate("text", x = 0.5, y = 0.5, label = "No parameters selected", 
                     size = 6, hjust = 0.5, vjust = 0.5))
   }
   
-  counts <- master_filtered_data() %>%
+  counts <- stationsMetadata() %>%
     group_by(ProgramName) %>%
     summarise(n = n(), .groups = 'drop') %>%
     arrange(desc(n))
