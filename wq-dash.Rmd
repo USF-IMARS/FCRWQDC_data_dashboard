@@ -50,34 +50,33 @@ stations_metadata <- load_dashboard_stations(here::here("data/dashboardStations.
 locs <- stations_metadata %>%
   st_as_sf(coords = c('Longitude', 'Latitude'), crs = prj)
 
-# === parameter mapping from dashboardStations columns to dashboard parameter names
-# Map dashboardStations column names to dashboard parameter names
-param_mapping <- list(
-  "Ammonium (NH4)" = "Ammonium",
-  "Chlorophyll a, Corrected for Pheophytin" = "Chlorophyll a",
-  "NO2+3, Filtered" = "Nitrate+Nitrite",
-  "Phosphate, Filtered (PO4)" = "Orthophosphate",
-  "Salinity" = "Salinity",
-  "Water Temperature" = "Water Temperature",
-  "pH" = "pH",
-  "Dissolved Oxygen" = "Dissolved Oxygen",
-  "Total Ammonia (N)" = "Ammonia (N)",
-  "Total Kjeldahl Nitrogen" = "Total Kjeldahl Nitrogen",
-  "Total Nitrogen" = "Total Nitrogen",
-  "Total Phosphorus" = "Total Phosphorus",
-  "Turbidity" = "Turbidity",
-  "Nitrate (NO3)" = "Nitrate",
-  "Nitrite (NO2)" = "Nitrite"
-)
-param_mapping_flipped <- list()
-# swap keys and values for the param_mapping
-for(key in names(param_mapping)) {
-  param_mapping_flipped[[param_mapping[[key]]]] <- key
-}
 
-# Get available parameters from dashboardStations columns
-available_params <- names(param_mapping)[names(param_mapping) %in% names(stations_metadata)]
-dashboard_param_names <- unlist(param_mapping[available_params])
+dashboard_param_names <- c(
+  # physical tab
+  "Salinity",
+  "Water Temperature",
+  "pH",
+
+  # wq tab
+  "Chlorophyll a, Corrected for Pheophytin",
+  "Turbidity",
+  "Dissolved Oxygen",
+ 
+  # nitrogen tab
+  "Ammonium (NH4)",
+  "Total Nitrogen",
+  "Total Kjeldahl Nitrogen",
+
+  # phosphorus tab
+  "Phosphate, Filtered (PO4)",
+  "Total Phosphorus"
+
+  # unused
+  # "NO2+3, Filtered",
+  # "Total Ammonia (N)",
+  # "Nitrate (NO3)",
+  # "Nitrite (NO2)"
+)
 ```
 
 ```{r create download button}
@@ -113,9 +112,6 @@ station_data <- reactive({
 
     if(!is.null(station_df) && nrow(station_df) > 0) {
       print(paste("Loaded", nrow(station_df), "rows for station", selsit))
-      # Check for NA values in key columns
-      print(paste("NA counts in loaded data:"))
-      print(colSums(is.na(station_df)))
 
       print(paste("Available parameters in loaded data:", paste(unique(station_df$Parameter), collapse=", ")))
     } else {
@@ -144,7 +140,7 @@ wq_plo <- reactive({
   
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   out <- subplot(
-    make_plot(current_station_data, 'Chlorophyll a', 'Chlor-a \n ug/L'),
+    make_plot(current_station_data, 'Chlorophyll a, Corrected for Pheophytin', 'Chlor-a \n ug/L'),
     make_plot(current_station_data, 'Turbidity', 'Turbidity \n NTU'),
     make_plot(current_station_data, 'Dissolved Oxygen', 'Dissolved Oxygen'),
 
@@ -243,11 +239,11 @@ nitro_plo <- reactive({
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   station_colname <- 'epchc_station'
   out <- subplot(
-    make_plot(current_station_data, 'Ammonium', 'Ammonium \n mg/L'),
+    make_plot(current_station_data, 'Ammonium (NH4)', 'Ammonium \n mg/L'),
     # make_plot(current_station_data, 'NO2+3, Filtered', 'mg/L'),
     # make_plot(current_station_data, 'Nitrite', 'mg/L'),
     # make_plot(current_station_data, 'Nitrate', 'mg/L'),
-    make_plot(current_station_data, 'Total Nitrogen', 'Nitrogen \n mg N/L'),
+    make_plot(current_station_data, 'Total Nitrogen', 'Total Nitrogen \n mg N/L'),
     make_plot(current_station_data, 'Total Kjeldahl Nitrogen', 'Kjeldahl N mg/L'),
     # nrows must equal the number of make_plot() calls above
     nrows = 3,
@@ -295,7 +291,7 @@ phos_plo <- reactive({
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   station_colname <- 'epchc_station'
   out <- subplot(
-    make_plot(current_station_data, 'Orthophosphate', 'Phosphate \n mg/L'),
+    make_plot(current_station_data, 'Phosphate, Filtered (PO4)', 'Phosphate \n mg/L'),
     make_plot(current_station_data, 'Total Phosphorus', 'Phosphorus \n mg/L'),
     # nrows must equal the number of make_plot() calls above
     nrows = 2,
@@ -538,14 +534,12 @@ stationsMetadata <- reactive({
   # print(filtered_stations_data)
 
   for(param in input$param_select) {
-    mappedParam <- param_mapping_flipped[[param]]
-    print(paste('Parameter:', param, '-> Column:', mappedParam))
-    print(paste('Sample values for', mappedParam, ':', head(filtered_stations_data[[mappedParam]], 5)))
-    print(paste('Stations with samples>0 in', mappedParam, ':', sum(filtered_stations_data[[mappedParam]] > 0)))
+    print(paste('total samples in', param, ':', sum(filtered_stations_data[[param]])))
+    print(paste('Stations with samples>0 in', param, ':', sum(filtered_stations_data[[param]] > 0)))
 
     filtered_stations_data <- filtered_stations_data %>%
       mutate(
-        nDataPoints = nDataPoints + .data[[mappedParam]]
+        nDataPoints = nDataPoints + .data[[param]]
       )
   }
 
