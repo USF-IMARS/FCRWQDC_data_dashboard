@@ -456,18 +456,18 @@ can also be adjusted with the sliders at each end of this plot.
 Column {.tabset .tabset-fade data-width=500}
 -----------------------------------------------------------------------
 
-### Water Clarity
-
-```{r}
-output$wq_plo <- renderPlotly(wq_plo())
-plotlyOutput('wq_plo')
-```
-
 ### Physical Parameters
 
 ```{r}
 output$phys_plo <- renderPlotly(phys_plo())
 plotlyOutput('phys_plo')
+```
+
+### Water Clarity
+
+```{r}
+output$wq_plo <- renderPlotly(wq_plo())
+plotlyOutput('wq_plo')
 ```
 
 ### Nitrogen
