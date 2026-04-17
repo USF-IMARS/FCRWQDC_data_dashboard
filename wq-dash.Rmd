@@ -151,23 +151,8 @@ wq_plo <- reactive({
           buttons = list(
             list(step = "all"),
             list(
-              count = 20,
-              label = "20 yr",
-              step = "year",
-              stepmode = "backward"),
-            list(
-              count = 10,
-              label = "10 yr",
-              step = "year",
-              stepmode = "backward"),
-            list(
               count = 5,
               label = "5 yr",
-              step = "year",
-              stepmode = "backward"),
-            list(
-              count = 1,
-              label = "1 yr",
               step = "year",
               stepmode = "backward")
           )
@@ -215,23 +200,8 @@ phys_plo <- reactive({
           buttons = list(
             list(step = "all"),
             list(
-              count = 20,
-              label = "20 yr",
-              step = "year",
-              stepmode = "backward"),
-            list(
-              count = 10,
-              label = "10 yr",
-              step = "year",
-              stepmode = "backward"),
-            list(
               count = 5,
               label = "5 yr",
-              step = "year",
-              stepmode = "backward"),
-            list(
-              count = 1,
-              label = "1 yr",
               step = "year",
               stepmode = "backward")
           )
@@ -282,23 +252,8 @@ nitro_plo <- reactive({
           buttons = list(
             list(step = "all"),
             list(
-              count = 20,
-              label = "20 yr",
-              step = "year",
-              stepmode = "backward"),
-            list(
-              count = 10,
-              label = "10 yr",
-              step = "year",
-              stepmode = "backward"),
-            list(
               count = 5,
               label = "5 yr",
-              step = "year",
-              stepmode = "backward"),
-            list(
-              count = 1,
-              label = "1 yr",
               step = "year",
               stepmode = "backward")
           )
@@ -345,23 +300,8 @@ phos_plo <- reactive({
           buttons = list(
             list(step = "all"),
             list(
-              count = 20,
-              label = "20 yr",
-              step = "year",
-              stepmode = "backward"),
-            list(
-              count = 10,
-              label = "10 yr",
-              step = "year",
-              stepmode = "backward"),
-            list(
               count = 5,
               label = "5 yr",
-              step = "year",
-              stepmode = "backward"),
-            list(
-              count = 1,
-              label = "1 yr",
               step = "year",
               stepmode = "backward")
           )
