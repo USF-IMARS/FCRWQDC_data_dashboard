@@ -29,7 +29,7 @@ load_station_data <- function(program_name, location_id) {
   }
   
   # Load the station-specific CSV data
-  station_data <- readr::read_csv(station_file_path) %>%
+  station_data <- readr::read_csv(station_file_path, show_col_types = FALSE) %>%
     dplyr::mutate(
       Site = location_id,
       bay_segment = program_name,
@@ -45,9 +45,7 @@ load_station_data <- function(program_name, location_id) {
       d  = day(SampleDate),
       Value = ResultValue,
       chla = Value,  # TODO: fix this variable name - should be parameter-specific
-      epchc_station = paste(Source, Site, sep="."),
-      Latitude = NA,  # Station files don't contain coordinates
-      Longitude = NA  # Station files don't contain coordinates
+      epchc_station = paste(Source, Site, sep=".")
     ) %>%
     # Apply the same parameter mapping as the main data loader
     mutate(
@@ -89,7 +87,7 @@ load_station_data <- function(program_name, location_id) {
 #' @export
 load_dashboard_stations <- function(fpath) {
   # Load the dashboard stations data
-  stations_data <- readr::read_csv(fpath) %>%
+  stations_data <- readr::read_csv(fpath, show_col_types = FALSE) %>%
     dplyr::mutate(
       epchc_station = paste(ProgramName, ProgramLocationID, sep="."),
       Latitude = OriginalLatitude,

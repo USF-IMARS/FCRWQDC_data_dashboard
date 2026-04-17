@@ -75,7 +75,6 @@ for(key in names(param_mapping)) {
   param_mapping_flipped[[param_mapping[[key]]]] <- key
 }
 
-
 # Get available parameters from dashboardStations columns
 available_params <- names(param_mapping)[names(param_mapping) %in% names(stations_metadata)]
 dashboard_param_names <- unlist(param_mapping[available_params])
@@ -95,11 +94,11 @@ downloadButtonRmd <- function (outputId, label = "Download", class = NULL, ...) 
 station_data <- reactive({
   # Get selected station ID
   selsit <- input$map_marker_click$id
-  
+
   # Use first station if none selected
-  if(is.null(selsit))  
-    selsit <- locs[1, ]$epchc_station 
-  
+  if(is.null(selsit))
+    selsit <- locs[1, ]$epchc_station
+
   # Parse the station ID to extract program name and location ID
   # Format: "ProgramName.LocationID"
   station_parts <- strsplit(selsit, "\\.")[[1]]
@@ -110,10 +109,24 @@ station_data <- reactive({
     print(paste("loading data for", program_name, location_id, "..."))
 
     # Load station-specific data
-    load_station_data(program_name, location_id)
+    station_df <- load_station_data(program_name, location_id)
+
+    if(!is.null(station_df) && nrow(station_df) > 0) {
+      print(paste("Loaded", nrow(station_df), "rows for station", selsit))
+      # Check for NA values in key columns
+      print(paste("NA counts in loaded data:"))
+      print(colSums(is.na(station_df)))
+
+      print(paste("Available parameters in loaded data:", paste(unique(station_df$Parameter), collapse=", ")))
+    } else {
+      print("WARNING: No data loaded or data is NULL")
+    }
+
+    return(station_df)
   } else {
     # Show notification with error message
     showNotification("Invalid station ID format", type = "error")
+    return(NULL)
   }
 })
 
@@ -180,9 +193,9 @@ phys_plo <- reactive({
 
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   out <- subplot(
-    make_plot(current_station_data, 'Salinity', 'Salinity', selsit),
-    make_plot(current_station_data, 'Water Temperature', 'Water Temperature \n deg C', selsit),
-    make_plot(current_station_data, 'pH', 'pH', selsit),
+    make_plot(current_station_data, 'Salinity', 'Salinity'),
+    make_plot(current_station_data, 'Water Temperature', 'Water Temperature \n deg C'),
+    make_plot(current_station_data, 'pH', 'pH'),
 
     # nrows must equal the number of make_plot() calls above
     nrows = 3,
@@ -230,12 +243,12 @@ nitro_plo <- reactive({
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   station_colname <- 'epchc_station'
   out <- subplot(
-    make_plot(current_station_data, 'Ammonium', 'Ammonium \n mg/L', selsit),
-    # make_plot(current_station_data, 'NO2+3, Filtered', 'mg/L', selsit),
-    # make_plot(current_station_data, 'Nitrite', 'mg/L', selsit),
-    # make_plot(current_station_data, 'Nitrate', 'mg/L', selsit),
-    make_plot(current_station_data, 'Total Nitrogen', 'Nitrogen \n mg N/L', selsit),
-    make_plot(current_station_data, 'Total Kjeldahl Nitrogen', 'Kjeldahl N mg/L', selsit),
+    make_plot(current_station_data, 'Ammonium', 'Ammonium \n mg/L'),
+    # make_plot(current_station_data, 'NO2+3, Filtered', 'mg/L'),
+    # make_plot(current_station_data, 'Nitrite', 'mg/L'),
+    # make_plot(current_station_data, 'Nitrate', 'mg/L'),
+    make_plot(current_station_data, 'Total Nitrogen', 'Nitrogen \n mg N/L'),
+    make_plot(current_station_data, 'Total Kjeldahl Nitrogen', 'Kjeldahl N mg/L'),
     # nrows must equal the number of make_plot() calls above
     nrows = 3,
     shareX = T, shareY = F, titleX = T, titleY = T, which_layout = 1
@@ -282,8 +295,8 @@ phos_plo <- reactive({
   selected_site <- filter(locs, epchc_station == selsit)[1,]  # TODO: mean the geometries instead of just using the first
   station_colname <- 'epchc_station'
   out <- subplot(
-    make_plot(current_station_data, 'Orthophosphate', 'Phosphate \n mg/L', selsit),
-    make_plot(current_station_data, 'Total Phosphorus', 'Phosphorus \n mg/L', selsit),
+    make_plot(current_station_data, 'Orthophosphate', 'Phosphate \n mg/L'),
+    make_plot(current_station_data, 'Total Phosphorus', 'Phosphorus \n mg/L'),
     # nrows must equal the number of make_plot() calls above
     nrows = 2,
     shareX = T, shareY = F, titleX = T, titleY = T, which_layout = 1
@@ -516,26 +529,36 @@ master_filtered_data <- reactive({
     return(NULL)
   }
 
+  print("=== DEBUG: master_filtered_data ===")
+  print(paste("Selected parameters:", paste(input$param_select, collapse=", ")))
+
   filtered_stations_data <- stations_metadata %>% mutate(
-    nRowsSelected = 0
+    nDataPoints = 0
   )
   # print(filtered_stations_data)
 
   for(param in input$param_select) {
     mappedParam <- param_mapping_flipped[[param]]
-    # print(paste('adding stations with', mappedParam, '...'))
-    # print(filtered_stations_data[[mappedParam]])
-    
+    print(paste('Parameter:', param, '-> Column:', mappedParam))
+    print(paste('Sample values for', mappedParam, ':', head(filtered_stations_data[[mappedParam]], 5)))
+    print(paste('Stations with >0 in', mappedParam, ':', sum(filtered_stations_data[[mappedParam]] > 0)))
+
     filtered_stations_data <- filtered_stations_data %>%
       mutate(
-        nRowsSelected = nRowsSelected + .data[[mappedParam]]
+        nDataPoints = nDataPoints + .data[[mappedParam]]
       )
   }
 
   # print(paste("n stations before filter:", nrow(filtered_stations_data)))
-  # drop any stations with nRowsSelected <= 0
-  filtered_stations_data <- filtered_stations_data %>% filter(nRowsSelected > 0)
-  # print(paste("n stations after filter:", nrow(filtered_stations_data)))
+  # drop any stations with nDataPoints <= 0
+  filtered_stations_data <- filtered_stations_data %>% filter(nDataPoints > 0)
+  print(paste("n stations after filter:", nrow(filtered_stations_data)))
+
+  # Show sample of filtered stations
+  if(nrow(filtered_stations_data) > 0) {
+    print("Sample of filtered stations:")
+    print(head(filtered_stations_data[, c('epchc_station', 'ProgramName', 'nDataPoints')]))
+  }
 
   return(filtered_stations_data)
 })

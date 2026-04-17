@@ -20,28 +20,30 @@ pthm <- theme(
   panel.background = element_rect(fill = '#ECECEC')
 ) 
 
-make_plot <- function(dataframe, varname, ylabel, selsit){
+make_plot <- function(dataframe, varname, ylabel){
   # dataframe <- epcdata  # dataframe: df to plot
   # varname <- 'chla'  # str: column name of variable to plot
   # ylabel <- 'Concentration (ug/L)'  # str: label for y axis
-  # selsit : str : selected site
   # assumes site column named "Site"
   # assumes parameter column named "Parameter"
+
+  print(paste("=== DEBUG: make_plot ==="))
+  print(paste("Available parameters in data:", paste(unique(dataframe$Parameter), collapse=", ")))
+
   toplo <- dataframe %>%
-    filter(epchc_station == selsit) %>%
     filter(`Parameter` == varname) %>%
     mutate(
       Date = as.Date(datetime),
       ydata = as.numeric(Value)
     )
 
-  # print(glue("plotting {nrow(toplo)} points..."))
-
+  print(paste("Rows after filtering for station and parameter:", nrow(toplo)))
 
   # add a fake row if df is empty to prevent failures
   if(nrow(toplo) < 1 ){  # if no data for this param
+    print(paste("WARNING: No data found for parameter:", varname))
     # Create a new row to append
-    new_row <- tibble(Date = as.Date("2022-01-01"), ydata = 0)
+    new_row <- tibble(Date = as.Date("1970-01-01"), ydata = 0)
     # Append the new row to the tibble
     toplo <- bind_rows(toplo, new_row)
   }
