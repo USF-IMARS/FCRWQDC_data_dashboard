@@ -392,13 +392,13 @@ color_factor <- colorFactor(palette = colors, levels = unique(locs$bay_segment))
 
 # TODO: add legend
 
-createMapMarkers <- function(map_obj, station_data){
-  if(nrow(station_data) == 0){
+createMapMarkers <- function(map_obj, stationsMetadata){
+  if(nrow(stationsMetadata) == 0){
     return(map_obj %>% clearMarkers())
   }
   
   # Add bay_segment column from locs for coloring
-  station_data$bay_segment <- factor(station_data$ProgramName)
+  stationsMetadata$bay_segment <- factor(stationsMetadata$ProgramName)
   
   map_obj %>%
     clearMarkers() %>%
@@ -406,13 +406,13 @@ createMapMarkers <- function(map_obj, station_data){
       stroke = F,
       fillOpacity = 0.5,
       radius = 5,
-      data = station_data,
+      data = stationsMetadata,
       layerId = ~epchc_station,
       color = ~color_factor(bay_segment),
       # TODO: add legend for marker colors
     ) %>% 
     addCircleMarkers(  # highlight the selected marker
-        data = station_data[1, ],
+        data = stationsMetadata[1, ],
         layerId = 'selsit',
         stroke = T,
         color = '#5C4A42',
@@ -461,11 +461,11 @@ output$wqdwntab <- downloadHandler(
   content = function(file){
     
     # inputs
-    seldl <- input$seldl
+    selected_download <- input$seldl
     
-    todl <- station_data()
+    to_download <- station_data()
     
-    write.csv(todl, file, quote = T, row.names = F)
+    write.csv(to_download, file, quote = T, row.names = F)
   }
 )
 ```
@@ -575,7 +575,7 @@ master_filtered_data <- reactive({
   if(is.null(input$param_select) || length(input$param_select) == 0){
     return(NULL)
   }
-  
+
   filtered_stations_data <- stations_metadata %>% mutate(
     nRowsSelected = 0
   )
@@ -592,17 +592,19 @@ master_filtered_data <- reactive({
       )
   }
 
+  # print(paste("n stations before filter:", nrow(filtered_stations_data)))
   # drop any stations with nRowsSelected <= 0
   filtered_stations_data <- filtered_stations_data %>% filter(nRowsSelected > 0)
-  # print(filtered_stations_data$nRowsSelected)
+  # print(paste("n stations after filter:", nrow(filtered_stations_data)))
 
   return(filtered_stations_data)
 })
 
-# observer to update map when parameter selection changes
+# observer to update map when master_filtered_data changes
 observe({
   param_select <- input$param_select
   print(paste("param_select:", length(param_select), "items"))
+
   if(is.null(param_select) || length(param_select) == 0){
     print("Clearing all markers")
     leafletProxy('map') %>% clearMarkers()
@@ -611,7 +613,7 @@ observe({
     leafletProxy('map') %>%
       createMapMarkers(master_filtered_data())
   }
-  
+
   # Explicit cleanup
   rm(list = ls(envir = .GlobalEnv)[grepl("^tmp_", ls(envir = .GlobalEnv))])
   gc(verbose = FALSE)
