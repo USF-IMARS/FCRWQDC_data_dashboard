@@ -399,30 +399,13 @@ createMapMarkers <- function(map_obj, station_data){
   
   # Add bay_segment column from locs for coloring
   station_data$bay_segment <- factor(station_data$ProgramName)
-
-  # calculate a radius for each marker based on endDate - startDate
-  station_data$radius <- as.numeric(station_data$endDate - station_data$startDate)
-  
-  # Manually scale radius to range 5-20
-  if(length(unique(station_data$radius)) > 1) {
-    min_val <- min(station_data$radius, na.rm = TRUE)
-    max_val <- max(station_data$radius, na.rm = TRUE)
-    if(max_val > min_val) {
-      station_data$scaled_radius <- 5 + (station_data$radius - min_val) * (15 / (max_val - min_val))
-    } else {
-      station_data$scaled_radius <- 10  # Default middle value
-    }
-  } else {
-    station_data$scaled_radius <- 10  # Default value
-  }
-  
   
   map_obj %>%
     clearMarkers() %>%
     addCircleMarkers(
       stroke = F,
       fillOpacity = 0.5,
-      radius = ~scaled_radius,
+      radius = 5,
       data = station_data,
       layerId = ~epchc_station,
       color = ~color_factor(bay_segment),
