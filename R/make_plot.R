@@ -42,8 +42,12 @@ make_plot <- function(dataframe, varname, ylabel){
   # add a fake row if df is empty to prevent failures
   if(nrow(toplo) < 1 ){  # if no data for this param
     print(paste("WARNING: No data found for parameter:", varname))
-    # Create a new row to append
-    new_row <- tibble(Date = as.Date("1970-01-01"), ydata = 0)
+    # Create a dummy row with current date and 0 value
+    new_row <- tibble(
+      Date = Sys.Date(),
+      ydata = 0
+    )
+    
     # Append the new row to the tibble
     toplo <- bind_rows(toplo, new_row)
   }
