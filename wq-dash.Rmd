@@ -599,25 +599,6 @@ master_filtered_data <- reactive({
   return(filtered_stations_data)
 })
 
-# reactive expression for provider counts - uses master data
-provider_counts <- reactive({
-  req(master_filtered_data())
-  if(is.null(master_filtered_data())){
-    return("No parameters selected")
-  }
-  
-  counts <- master_filtered_data() %>%
-    group_by(ProgramName) %>%
-    summarise(n = n(), .groups = 'drop') %>%
-    arrange(desc(n))
-  
-  if(nrow(counts) == 0){
-    return("No data matches selection")
-  }
-  
-  paste(counts$ProgramName, ":", counts$n, collapse = "\n\n")
-})
-
 # observer to update map when parameter selection changes
 observe({
   param_select <- input$param_select
