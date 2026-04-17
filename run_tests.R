@@ -1,3 +1,4 @@
 library(testthat)
-testthat::test_dir("./R", filter="*._test.R")  # TODO: this doesn't work
-testthat::test_file("./R/make_plot_test.R")
+library(here)
+testthat::test_dir(here("./test"), filter=NULL)
+testthat::test_file(here("./test/test-make_plot.R"))

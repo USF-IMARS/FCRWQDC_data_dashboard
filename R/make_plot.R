@@ -1,4 +1,7 @@
 library(glue)
+library(ggplot2)
+library(dplyr)
+library(plotly)
 
 # minor theme tweaks
 fml <- "Lato Light"
@@ -32,7 +35,7 @@ make_plot <- function(dataframe, varname, ylabel, selsit){
       ydata = as.numeric(Value)
     )
 
-  print(glue("plotting {nrow(toplo)} points..."))
+  # print(glue("plotting {nrow(toplo)} points..."))
 
 
   # add a fake row if df is empty to prevent failures

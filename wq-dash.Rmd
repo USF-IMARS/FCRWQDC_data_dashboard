@@ -106,7 +106,9 @@ station_data <- reactive({
   if(length(station_parts) >= 2) {
     program_name <- station_parts[1]
     location_id <- station_parts[2]
-    
+
+    print(paste("loading data for", program_name, location_id, "..."))
+
     # Load station-specific data
     load_station_data(program_name, location_id)
   } else {
@@ -478,11 +480,9 @@ output$wqdwntab <- downloadHandler(
     # inputs
     seldl <- input$seldl
     
-    
     todl <- station_data()
     
     write.csv(todl, file, quote = T, row.names = F)
-    
   }
 )
 ```
