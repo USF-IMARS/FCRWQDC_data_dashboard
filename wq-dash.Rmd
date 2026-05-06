@@ -425,7 +425,7 @@ SITE TRENDS
 Column {.tabset .tabset-fade data-width=250}
 -----------------------------------------------------------------------
 
-### MAP SELECTION
+### Map
 
 ```{r}
 output$map <- renderLeaflet(bsmap)
@@ -461,6 +461,10 @@ time ranges on the x-axis, click on any plot and drag the mouse pointer over the
 range. The plot on the very bottom is a reference for the relative zoom on the x-axis. Time ranges
 can also be adjusted with the sliders at each end of this plot.
 
+### Data Provider Detail
+Data provider names have been shortened for display here.
+A mapping of the names in R is performed [here](https://github.com/USF-IMARS/FCRWQDC-SEACAR-analysis/blob/main/SEACARProgramCompare/mapProgramNameToShortName.R).
+That mapping is based on [this google sheet](https://docs.google.com/spreadsheets/d/1GVJ4kyze9s_XfiOls81FaKKY4B1dH7Ex08UM7B6A_pc).
 
 Column {.tabset .tabset-fade data-width=500}
 -----------------------------------------------------------------------
