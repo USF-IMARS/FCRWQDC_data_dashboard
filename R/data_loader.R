@@ -90,8 +90,8 @@ load_dashboard_stations <- function(fpath) {
   stations_data <- readr::read_csv(fpath, show_col_types = FALSE) %>%
     dplyr::mutate(
       epchc_station = paste(ProgramName, ProgramLocationID, sep="."),
-      Latitude = OriginalLatitude,
-      Longitude = OriginalLongitude
+      Latitude = AverageLatitude,
+      Longitude = AverageLongitude
     )
   
   return(stations_data)
